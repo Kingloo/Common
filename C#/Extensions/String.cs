@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace .Extensions
 {
-    public static class StringExt
+    public static class StringExtensions
     {
         public static bool ContainsExt(this string target, string toFind, StringComparison comparison)
         {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace .Extensions
 {
-    public static class WebRequestExt
+    public static class WebRequestExtensions
     {
         public static WebResponse GetResponseExt(this WebRequest request)
         {

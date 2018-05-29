@@ -12,29 +12,19 @@ namespace .Extensions
             
             if (screenWidth < 1)
             {
-                string message = string.Format(
-                    CultureInfo.CurrentCulture,
-                    "screenWidth was {0}, it cannot be < 1",
-                    screenWidth);
-
-                throw new ArgumentException(message, nameof(screenWidth));
+                throw new ArgumentOutOfRangeException(nameof(screenWidth));
             }
 
             if (screenHeight < 1)
             {
-                string message = string.Format(
-                    CultureInfo.CurrentCulture,
-                    "screenHeight was {0}, it cannot be < 1",
-                    screenHeight);
-
-                throw new ArgumentException(message, nameof(screenHeight));
+                throw new ArgumentOutOfRangeException(nameof(screenHeight));
             }
 
             double left = (screenWidth / 2d) - (window.Width / 2d);
             double top = (screenHeight / 2d) - (window.Height / 2d);
 
-            window.Left = Math.Max(left, 0);
-            window.Top = Math.Max(top, 0);
+            window.Left = Math.Max(left, 0d);
+            window.Top = Math.Max(top, 0d);
         }
     }
 }

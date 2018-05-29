@@ -4,7 +4,7 @@ using System.IO;
 
 namespace .Extensions
 {
-    public static class FileInfoExt
+    public static class FileInfoExtensions
     {
         public static void Launch(this FileInfo file)
             => Launch(file, new ProcessStartInfo(file.FullName));
