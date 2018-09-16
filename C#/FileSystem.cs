@@ -12,7 +12,7 @@ namespace
 
         public static Task<string[]> GetLinesAsync(FileInfo file, FileMode mode)
         {
-            if (file == null) { throw new ArgumentNullException(nameof(file)); }
+            if (file is null) { throw new ArgumentNullException(nameof(file)); }
 
             return GetLinesAsyncImpl(file, mode);
         }
@@ -52,7 +52,7 @@ namespace
 
         public static Task WriteLinesAsync(FileInfo file, IEnumerable<string> lines, FileMode mode)
         {
-            if (file == null) { throw new ArgumentNullException(nameof(file)); }
+            if (file is null) { throw new ArgumentNullException(nameof(file)); }
             if (!lines.Any()) { return Task.CompletedTask; }
 
             return WriteLinesAsyncImpl(file, lines, mode);

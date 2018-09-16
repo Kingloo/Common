@@ -27,7 +27,7 @@ namespace
 
         private static void Display(NotificationWindow window)
         {
-            if (window == null) { throw new ArgumentNullException(nameof(window)); }
+            if (window is null) { throw new ArgumentNullException(nameof(window)); }
 
             window.Show();
 

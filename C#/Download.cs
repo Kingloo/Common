@@ -64,10 +64,7 @@ namespace
 
             if (!client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent))
             {
-                string message = string.Format(
-                    CultureInfo.CurrentCulture,
-                    "User-Agent ({0}) could not be added",
-                    userAgent);
+                string message = string.Format(CultureInfo.CurrentCulture, "User-Agent ({0}) could not be added", userAgent);
 
                 Log.LogMessage(message);
             }
@@ -172,7 +169,7 @@ namespace
 
         public static Task<string> WebsiteAsync(Uri uri, CancellationToken token)
         {
-            if (uri == null) { throw new ArgumentNullException(nameof(uri)); }
+            if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
 
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
             
@@ -184,7 +181,7 @@ namespace
 
         public static Task<string> WebsiteAsync(HttpRequestMessage request, CancellationToken token)
         {
-            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request is null) { throw new ArgumentNullException(nameof(request)); }
 
             return DownloadStringAsync(request, token);
         }

@@ -62,7 +62,7 @@ namespace
 
         public static void LogException(Exception ex, string message, bool includeStackTrace)
         {
-            if (ex == null) { throw new ArgumentNullException(nameof(ex)); }
+            if (ex is null) { throw new ArgumentNullException(nameof(ex)); }
 
             string text = FormatException(ex, message, includeStackTrace);
 
@@ -80,7 +80,7 @@ namespace
 
         public static Task LogExceptionAsync(Exception ex, string message, bool includeStackTrace)
         {
-            if (ex == null) { throw new ArgumentNullException(nameof(ex)); }
+            if (ex is null) { throw new ArgumentNullException(nameof(ex)); }
 
             string text = FormatException(ex, message, includeStackTrace);
             

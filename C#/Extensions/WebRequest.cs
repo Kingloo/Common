@@ -8,7 +8,7 @@ namespace .Extensions
     {
         public static WebResponse GetResponseExt(this WebRequest request)
         {
-            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request is null) { throw new ArgumentNullException(nameof(request)); }
 
             WebResponse webResp = null;
 
@@ -26,7 +26,7 @@ namespace .Extensions
 
         public static async Task<WebResponse> GetResponseAsyncExt(this WebRequest request)
         {
-            if (request == null) { throw new ArgumentNullException(nameof(request)); }
+            if (request is null) { throw new ArgumentNullException(nameof(request)); }
 
             WebResponse webResp = null;
 

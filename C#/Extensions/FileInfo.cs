@@ -11,7 +11,7 @@ namespace .Extensions
 
         public static void Launch(this FileInfo file, ProcessStartInfo pInfo)
         {
-            if (file == null) { throw new ArgumentNullException(nameof(file)); }
+            if (file is null) { throw new ArgumentNullException(nameof(file)); }
 
             if (file.Exists)
             {

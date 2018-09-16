@@ -8,7 +8,7 @@ namespace .Extensions
     {
         public static void MoveToMiddleOfScreen(this Window window, double screenWidth, double screenHeight)
         {
-            if (window == null) { throw new ArgumentNullException(nameof(window)); }
+            if (window is null) { throw new ArgumentNullException(nameof(window)); }
             
             if (screenWidth < 1)
             {

@@ -11,7 +11,7 @@ namespace .Extensions
     {
         public static bool ContainsExt(this string target, string toFind, StringComparison comparison)
         {
-            if (target == null) { throw new ArgumentNullException(nameof(target)); }
+            if (target is null) { throw new ArgumentNullException(nameof(target)); }
 
             return (target.IndexOf(toFind, comparison) > -1);
         }
@@ -19,7 +19,7 @@ namespace .Extensions
 
         public static string RemoveNewLines(this string value)
         {
-            if (value == null) { throw new ArgumentNullException(nameof(value)); }
+            if (value is null) { throw new ArgumentNullException(nameof(value)); }
 
             string toReturn = value;
 
@@ -49,8 +49,8 @@ namespace .Extensions
         
         public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
         {
-            if (self == null) { throw new ArgumentNullException(nameof(self)); }
-            if (categories == null) { throw new ArgumentNullException(nameof(categories)); }
+            if (self is null) { throw new ArgumentNullException(nameof(self)); }
+            if (categories is null) { throw new ArgumentNullException(nameof(categories)); }
 
             StringBuilder sb = new StringBuilder();
 
@@ -68,7 +68,7 @@ namespace .Extensions
 
         public static IReadOnlyList<string> FindBetween(this string text, string beginning, string ending)
         {
-            if (text == null) { throw new ArgumentNullException(nameof(text)); }
+            if (text is null) { throw new ArgumentNullException(nameof(text)); }
 
             if (String.IsNullOrEmpty(beginning)) { throw new ArgumentException("beginning was NullOrEmpty", nameof(beginning)); }
             if (String.IsNullOrEmpty(ending)) { throw new ArgumentException("ending was NullOrEmpty", nameof(ending)); }

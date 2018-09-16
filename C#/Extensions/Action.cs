@@ -11,8 +11,8 @@ namespace .Extensions
 
         public static void DispatchSafely(this Action action, Dispatcher dispatcher, DispatcherPriority priority)
         {
-            if (dispatcher == null) { throw new ArgumentNullException(nameof(dispatcher)); }
-            if (action == null) { throw new ArgumentNullException(nameof(action)); }
+            if (dispatcher is null) { throw new ArgumentNullException(nameof(dispatcher)); }
+            if (action is null) { throw new ArgumentNullException(nameof(action)); }
 
             if (dispatcher.CheckAccess())
             {
