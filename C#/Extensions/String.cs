@@ -52,11 +52,11 @@ namespace .Extensions
             if (self is null) { throw new ArgumentNullException(nameof(self)); }
             if (categories is null) { throw new ArgumentNullException(nameof(categories)); }
 
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             foreach (char c in self)
             {
-                if (!categories.Any(category => Char.GetUnicodeCategory(c) == category))
+                if (!categories.Any(category => category == Char.GetUnicodeCategory(c)))
                 {
                     sb.Append(c);
                 }
