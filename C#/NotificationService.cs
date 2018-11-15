@@ -1,78 +1,137 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace 
 {
     public static class NotificationService
     {
-        public static void Send(string title)
-            => Send(title, string.Empty, null);
+        private static bool canShowNotification = true;
 
-        public static void Send(string title, string description)
-            => Send(title, description, null);
+        private readonly static Queue<Notification> notificationQueue = new Queue<Notification>();
 
-        public static void Send(string title, Action action)
-            => Send(title, string.Empty, action);
-        
+        private static int timerTickCount = 0;
+        private static int timerTickMax = 15;
+
+        private static DispatcherTimer queuePullTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromSeconds(3d)
+        };
+
+
+
+        public static void Send(string title) => Send(title, string.Empty, null);
+
+        public static void Send(string title, string description) => Send(title, description, null);
+
+        public static void Send(string title, Action action) => Send(title, string.Empty, action);
+
         public static void Send(string title, string description, Action action)
         {
-            var window = new NotificationWindow(title, description, action);
+            InitTimer();
 
-            Display(window);
+            Notification notification = new Notification(title, description, action);
+
+            notification.Closed += (s, e) => canShowNotification = true;
+
+            notificationQueue.Enqueue(notification);
         }
 
 
-        private static void Display(NotificationWindow window)
-        {
-            if (window is null) { throw new ArgumentNullException(nameof(window)); }
 
-            window.Show();
+        private static void InitTimer()
+        {
+            queuePullTimer.Tick += QueuePullTimer_Tick;
+
+            if (!queuePullTimer.IsEnabled)
+            {
+                queuePullTimer.Start();
+            }
+        }
+
+        private static void QueuePullTimer_Tick(object sender, EventArgs e)
+        {
+            if (notificationQueue.Count > 0)
+            {
+                if (canShowNotification)
+                {
+                    Notification nextNotification = notificationQueue.Dequeue();
+
+                    Display(nextNotification);
+
+                    canShowNotification = false;
+                }
+            }
+            else
+            {
+                timerTickCount++; // incr the number of times the timer.Tick found nothing to work on
+            }
+
+            if (timerTickCount > timerTickMax)
+            // if there was nothing to pop for x number of ticks, we turn the timer off
+            {
+                queuePullTimer.Stop();
+
+                timerTickCount = 0; // and reset the counter
+            }
+        }
+
+        private static void Display(Notification notification)
+        {
+            if (notification is null) { throw new ArgumentNullException(nameof(notification)); }
+
+            notification.Show();
 
             System.Media.SystemSounds.Hand.Play();
         }
 
 
-        private sealed class NotificationWindow : Window
+
+        private sealed class Notification : Window
         {
-            internal NotificationWindow(string title, string description, Action action)
+            private readonly DispatcherCountdownTimer closeTimer = null;
+
+            internal Notification(string title, string description, Action action)
             {
                 Style = BuildWindowStyle(action);
-                
+
                 bool hasDescription = !String.IsNullOrWhiteSpace(description);
 
                 Grid grid = hasDescription ? BuildGrid(numRows: 2) : BuildGrid(numRows: 1);
 
-                Label lbl_Title = BuildTitleLabel(title);
-                Grid.SetRow(lbl_Title, 0);
-                grid.Children.Add(lbl_Title);
+                Label titleLabel = BuildLabel(BuildTitleLabelStyle(), title, FontStyles.Normal);
+
+                Grid.SetRow(titleLabel, 0);
+                grid.Children.Add(titleLabel);
 
                 if (hasDescription)
                 {
-                    Label lbl_Description = BuildDescriptionLabel(description);
-                    Grid.SetRow(lbl_Description, 1);
-                    grid.Children.Add(lbl_Description);
+                    Label descriptionLabel = BuildLabel(BuildDescriptionLabelStyle(), description, FontStyles.Italic);
+                    Grid.SetRow(descriptionLabel, 1);
+                    grid.Children.Add(descriptionLabel);
                 }
-                
+
                 AddChild(grid);
-                
+
 #if DEBUG
-                var notifyWindowCloseTimer = new DispatcherCountdownTimer(
-                    TimeSpan.FromSeconds(2d),
-                    () => Close());
+                TimeSpan windowCloseInterval = TimeSpan.FromSeconds(4d);
 #else
-                var notifyWindowCloseTimer = new DispatcherCountdownTimer(
-                    TimeSpan.FromSeconds(15d),
-                    () => Close());
+                TimeSpan windowCloseInterval = TimeSpan.FromSeconds(15d);
 #endif
-                notifyWindowCloseTimer.Start();
+
+                closeTimer = new DispatcherCountdownTimer(windowCloseInterval, Close);
+
+                Loaded += (s, e) => closeTimer.Start();
+                Closing += (s, e) => closeTimer.Stop();
             }
 
             private static Style BuildWindowStyle(Action action)
             {
-                Style style = new Style(typeof(NotificationWindow));
+                Style style = new Style(typeof(Notification));
 
                 if (action != null)
                 {
@@ -112,7 +171,7 @@ namespace
             {
                 if (numRows < 1)
                 {
-                    throw new ArgumentOutOfRangeException(nameof(numRows), "there must be at least 1 row");
+                    throw new ArgumentOutOfRangeException(nameof(numRows));
                 }
 
                 Grid grid = new Grid
@@ -148,15 +207,16 @@ namespace
                 return style;
             }
 
-            private static Label BuildTitleLabel(string title)
+            private static Label BuildLabel(Style labelStyle, string text, FontStyle fontStyle)
             {
                 return new Label
                 {
-                    Style = BuildTitleLabelStyle(),
+                    Style = labelStyle,
                     Content = new TextBlock
                     {
-                        Text = title,
-                        TextTrimming = TextTrimming.CharacterEllipsis
+                        Text = text,
+                        TextTrimming = TextTrimming.CharacterEllipsis,
+                        FontStyle = fontStyle
                     }
                 };
             }
@@ -177,20 +237,6 @@ namespace
                 style.Setters.Add(new Setter(HorizontalContentAlignmentProperty, HorizontalAlignment.Center));
 
                 return style;
-            }
-
-            private static Label BuildDescriptionLabel(string description)
-            {
-                return new Label
-                {
-                    Style = BuildDescriptionLabelStyle(),
-                    Content = new TextBlock
-                    {
-                        Text = description,
-                        TextTrimming = TextTrimming.CharacterEllipsis,
-                        FontStyle = FontStyles.Italic
-                    }
-                };
             }
 
             private static Style BuildDescriptionLabelStyle()

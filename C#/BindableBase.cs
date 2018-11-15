@@ -1,8 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Globalization;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace 
 {
@@ -14,7 +11,7 @@ namespace
         {
             if (String.IsNullOrWhiteSpace(propertyName))
             {
-                throw new ArgumentNullException(nameof(propertyName);
+                throw new ArgumentNullException(nameof(propertyName));
             }
 
             if (Equals(storage, value))
