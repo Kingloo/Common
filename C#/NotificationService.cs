@@ -45,7 +45,15 @@ namespace
 
         private static void InitTimer()
         {
-            queuePullTimer.Tick += QueuePullTimer_Tick;
+            if (queuePullTimer is null)
+            {
+                queuePullTimer = new DispatcherTimer(DispatcherPriority.Background)
+                {
+                    Interval = TimeSpan.FromSeconds(2d)
+                };
+
+                queuePullTimer.Tick += QueuePullTimer_Tick;
+            }
 
             if (!queuePullTimer.IsEnabled)
             {
