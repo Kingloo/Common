@@ -23,9 +23,7 @@ namespace
                 throw new ArgumentException("invalid Regex pattern", nameof(pattern));
             }
 
-            List<string> segmentsToKeep = uri.Segments
-                .Where(x => !Regex.IsMatch(x, pattern))
-                .ToList();
+            var segmentsToKeep = uri.Segments.Where(x => !Regex.IsMatch(x, pattern));
             
             StringBuilder path = new StringBuilder();
 

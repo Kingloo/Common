@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -6,7 +7,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace 
+namespace .Common
 {
     public enum DownloadResult
     {
@@ -16,6 +17,17 @@ namespace
         Canceled,
         FileAlreadyExists,
         InternetError
+    }
+
+    public class HeaderException : Exception
+    {
+        public string UnaddableHeader { get; } = string.Empty;
+
+        public HeaderException(string header)
+            : base($"unaddable header: {header}")
+        {
+            UnaddableHeader = header;
+        }
     }
 
     public class DownloadProgress
@@ -42,9 +54,11 @@ namespace
 
     public class Download
     {
-        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0";
+        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0) Gecko/20100101 Firefox/64.0";
         
         private static HttpClient client = null;
+
+        private CancellationTokenSource cts = null;
 
         private static void InitClient()
         {
@@ -64,9 +78,7 @@ namespace
 
             if (!client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent))
             {
-                string message = string.Format(CultureInfo.CurrentCulture, "User-Agent ({0}) could not be added", userAgent);
-
-                Log.LogMessage(message);
+                throw new HeaderException(userAgent);
             }
         }
 
@@ -81,43 +93,51 @@ namespace
             File = file ?? throw new ArgumentNullException(nameof(file));
         }
 
-        public Task<DownloadResult> ToFileAsync(IProgress<DownloadProgress> progress)
-            => ToFileAsync(progress, CancellationToken.None);
+        public Task<DownloadResult> ToFileAsync()
+            => ToFileAsync(null);
 
-        public async Task<DownloadResult> ToFileAsync(IProgress<DownloadProgress> progress, CancellationToken token)
+        public async Task<DownloadResult> ToFileAsync(IProgress<DownloadProgress> progress)
         {
             if (File.Exists) { return DownloadResult.FileAlreadyExists; }
 
             InitClient();
 
-            var request = new HttpRequestMessage(HttpMethod.Get, Uri);
-            
-            var response = await client
-                .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token)
-                .ConfigureAwait(false);
-
-            Stream receive = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-            Stream save = new FileStream(
-                File.FullName,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None,
-                1024 * 1024 * 5, // 5 MiB
-                FileOptions.Asynchronous);
-
-            Int64? contentLength = response.Content.Headers.ContentLength;
+            cts = new CancellationTokenSource();
 
             int bytesRead = 0;
             Int64 totalBytesReceived = 0L;
             Int64 prevTotalBytesReceived = 0L;
-            Int64 reportingThreshold = 1024 * 333; // 333 KiB
+            Int64 reportingThreshold = 1024L * 333L; // 333 KiB
 
-            byte[] buffer = new byte[1024 * 1024 * 15]; // 15 MiB
+            byte[] buffer = new byte[1024 * 1024]; // 1 MiB - but bytesRead below is only ever 16384 bytes
+
+            HttpRequestMessage request = null;
+            HttpResponseMessage response = null;
+
+            Stream receive = null;
+            Stream save = null;
 
             try
             {
-                while ((bytesRead = await receive.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0)
+                request = new HttpRequestMessage(HttpMethod.Get, Uri);
+
+                response = await client
+                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
+                    .ConfigureAwait(false);
+
+                receive = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+
+                save = new FileStream(
+                    File.FullName,
+                    FileMode.Create,
+                    FileAccess.Write,
+                    FileShare.None,
+                    1024 * 1024 * 15, // 15 MiB
+                    FileOptions.Asynchronous);
+
+                Int64? contentLength = response.Content.Headers.ContentLength;
+
+                while ((bytesRead = await receive.ReadAsync(buffer, 0, buffer.Length, cts.Token).ConfigureAwait(false)) > 0)
                 {
                     totalBytesReceived += bytesRead;
 
@@ -158,9 +178,17 @@ namespace
                 response?.Dispose();
                 receive?.Dispose();
                 save?.Dispose();
+                cts?.Dispose();
+
+                cts = null;
             }
 
             return DownloadResult.Success;
+        }
+
+        public void Cancel()
+        {
+            cts?.Cancel();
         }
 
 
@@ -195,7 +223,9 @@ namespace
 
             try
             {
-                using (var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false))
+                var httpOption = HttpCompletionOption.ResponseHeadersRead;
+
+                using (var response = await client.SendAsync(request, httpOption, token).ConfigureAwait(false))
                 {
                     if (response.IsSuccessStatusCode)
                     {
@@ -203,11 +233,11 @@ namespace
                     }
                     else
                     {
-                        string message = string.Format(
-                            CultureInfo.CurrentCulture,
-                            "downloading {0}: {1}",
-                            request.RequestUri.AbsoluteUri,
-                            response.StatusCode);
+                        var cc = CultureInfo.CurrentCulture;
+                        string link = request.RequestUri.AbsoluteUri;
+                        HttpStatusCode httpCode = response.StatusCode;
+
+                        string message = string.Format(cc, "downloading {0} failed: {1}", link, httpCode);
 
                         await Log.LogMessageAsync(message).ConfigureAwait(false);
                     }
@@ -222,10 +252,10 @@ namespace
 
             if (token.IsCancellationRequested)
             {
-                string message = string.Format(
-                    CultureInfo.CurrentCulture,
-                    "user cancelled download of {0}",
-                    request.RequestUri.AbsoluteUri);
+                var cc = CultureInfo.CurrentCulture;
+                string link = request.RequestUri.AbsoluteUri;
+
+                string message = string.Format(cc, "user cancelled download of {0}", link);
 
                 await Log.LogMessageAsync(message).ConfigureAwait(false);
             }
