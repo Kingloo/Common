@@ -14,10 +14,10 @@ namespace
         {
             if (file is null) { throw new ArgumentNullException(nameof(file)); }
 
-            return GetLinesAsyncImpl(file, mode);
+            return GetLinesAsyncInternal(file, mode);
         }
 
-        private static async Task<string[]> GetLinesAsyncImpl(FileInfo file, FileMode mode)
+        private static async Task<string[]> GetLinesAsyncInternal(FileInfo file, FileMode mode)
         {
             var lines = new List<string>();
 
@@ -55,10 +55,10 @@ namespace
             if (file is null) { throw new ArgumentNullException(nameof(file)); }
             if (!lines.Any()) { return Task.CompletedTask; }
 
-            return WriteLinesAsyncImpl(file, lines, mode);
+            return WriteLinesAsyncInternal(file, lines, mode);
         }
 
-        private static async Task WriteLinesAsyncImpl(FileInfo file, IEnumerable<string> lines, FileMode mode)
+        private static async Task WriteLinesAsyncInternal(FileInfo file, IEnumerable<string> lines, FileMode mode)
         {
             FileStream fsAsync = new FileStream(
                 file.FullName,
