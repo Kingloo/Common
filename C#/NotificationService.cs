@@ -33,6 +33,7 @@ namespace
 
             Notification notification = new Notification(title, description, action);
 
+            notification.Loaded += (s, e) => canShowNotification = false;
             notification.Closed += (s, e) => canShowNotification = true;
 
             notificationQueue.Enqueue(notification);
@@ -68,7 +69,7 @@ namespace
 
                     Display(nextNotification);
 
-                    canShowNotification = false;
+                    //canShowNotification = false;
                 }
             }
             else
