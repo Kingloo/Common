@@ -54,7 +54,7 @@ namespace .Common
 
     public class Download
     {
-        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:64.0) Gecko/20100101 Firefox/64.0";
+        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/66.0";
         
         private static HttpClient client = null;
 
@@ -121,9 +121,9 @@ namespace .Common
             {
                 request = new HttpRequestMessage(HttpMethod.Get, Uri);
 
-                response = await client
-                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cts.Token)
-                    .ConfigureAwait(false);
+                var httpOption = HttpCompletionOption.ResponseHeadersRead;
+
+                response = await client.SendAsync(request, httpOption, cts.Token).ConfigureAwait(false);
 
                 receive = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
