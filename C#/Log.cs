@@ -140,6 +140,8 @@ namespace
                     fs = null;
 
                     sw.WriteLine(text);
+
+                    sw.Flush();
                 }
             }
             catch (FileNotFoundException) { }
@@ -169,6 +171,8 @@ namespace
                     fsAsync = null;
 
                     await sw.WriteLineAsync(text).ConfigureAwait(false);
+
+                    await sw.FlushAsync().ConfigureAwait(false);
                 }
             }
             catch (FileNotFoundException) { }
