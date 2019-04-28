@@ -8,49 +8,63 @@ namespace
 {
     public static class FileSystem
     {
-        public static Task<string[]> GetLinesAsync(FileInfo file) => GetLinesAsync(file, FileMode.Open);
+        public static Task<bool> TryGetLinesAsync(FileInfo file, out string[] lines)
+            => GetLinesAsync(file, FileMode.Open, out lines);
 
-        public static Task<string[]> GetLinesAsync(FileInfo file, FileMode mode)
+        public static Task<bool> TryGetLinesAsync(FileInfo file, FileMode mode, out string[] lines)
         {
             if (file is null) { throw new ArgumentNullException(nameof(file)); }
 
-            return GetLinesAsyncInternal(file, mode);
+            return GetLinesAsyncInternal(file, mode, out lines);
         }
 
-        private static async Task<string[]> GetLinesAsyncInternal(FileInfo file, FileMode mode)
+        private static async Task<bool> TryGetLinesAsyncInternal(FileInfo file, FileMode mode, out string[] lines)
         {
-            var lines = new List<string>();
+            var loaded = new List<string>();
 
-            var fsAsync = new FileStream(
-                file.FullName,
-                mode,
-                FileAccess.Read,
-                FileShare.None,
-                4096,
-                FileOptions.Asynchronous | FileOptions.SequentialScan);
+            FileStream fsAsync = null;
 
-            using (StreamReader sr = new StreamReader(fsAsync))
+            try
             {
-                fsAsync = null;
+                fsAsync = new FileStream(
+                    file.FullName,
+                    mode,
+                    FileAccess.Read,
+                    FileShare.None,
+                    4096,
+                    FileOptions.Asynchronous | FileOptions.SequentialScan);
 
-                string line = string.Empty;
-
-                while ((line = await sr.ReadLineAsync().ConfigureAwait(false)) != null)
+                using (StreamReader sr = new StreamReader(fsAsync))
                 {
-                    lines.Add(line);
+                    fsAsync = null;
+
+                    string line = string.Empty;
+
+                    while ((line = await sr.ReadLineAsync().ConfigureAwait(false)) != null)
+                    {
+                        loaded.Add(line);
+                    }
                 }
             }
-
-            fsAsync?.Dispose();
-
-            return lines.ToArray();
+            catch (IOException)
+            {
+                lines = Array.Empty<string>();
+                return false;
+            }
+            finally
+            {
+                fsAsync?.Dispose();
+            }
+            
+            lines = loaded.ToArray();
+            return true;
         }
 
 
-        public static Task WriteLinesAsync(FileInfo file, IEnumerable<string> lines)
+        public static Task<bool> WriteLinesAsync(FileInfo file, IEnumerable<string> lines)
             => WriteLinesAsync(file, lines, FileMode.OpenOrCreate);
 
-        public static Task WriteLinesAsync(FileInfo file, IEnumerable<string> lines, FileMode mode)
+        public static Task<bool> WriteLinesAsync(FileInfo file, IEnumerable<string> lines, FileMode mode)
         {
             if (file is null) { throw new ArgumentNullException(nameof(file)); }
             if (!lines.Any()) { return Task.CompletedTask; }
@@ -58,29 +72,42 @@ namespace
             return WriteLinesAsyncInternal(file, lines, mode);
         }
 
-        private static async Task WriteLinesAsyncInternal(FileInfo file, IEnumerable<string> lines, FileMode mode)
+        private static async Task<bool> WriteLinesAsyncInternal(FileInfo file, IEnumerable<string> lines, FileMode mode)
         {
-            FileStream fsAsync = new FileStream(
-                file.FullName,
-                mode,
-                FileAccess.Write,
-                FileShare.None,
-                4096,
-                FileOptions.Asynchronous);
+            FileStream fsAsync = null;
 
-            using (StreamWriter sw = new StreamWriter(fsAsync))
+            try
             {
-                fsAsync = null;
+                fsAsync = new FileStream(
+                    file.FullName,
+                    mode,
+                    FileAccess.Write,
+                    FileShare.None,
+                    4096,
+                    FileOptions.Asynchronous);
 
-                foreach (string line in lines)
+                using (StreamWriter sw = new StreamWriter(fsAsync))
                 {
-                    await sw.WriteLineAsync(line).ConfigureAwait(false);
-                }
+                    fsAsync = null;
 
-                await sw.FlushAsync().ConfigureAwait(false);
+                    foreach (string line in lines)
+                    {
+                        await sw.WriteLineAsync(line).ConfigureAwait(false);
+                    }
+
+                    await sw.FlushAsync().ConfigureAwait(false);
+                }
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            finally
+            {
+                fsAsync?.Close();
             }
 
-            fsAsync?.Dispose();
+            return true;
         }
     }
 }
