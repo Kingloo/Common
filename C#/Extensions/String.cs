@@ -89,5 +89,23 @@ namespace .Extensions
 
             return results;
         }
+
+        public static string EnsureStartsWithHttps(this string input)
+        {
+            const string https = "https://";
+            const string http = "http://";
+
+            if (input.StartsWith(https))
+            {
+                return input;
+            }
+
+            if (input.StartsWith(http))
+            {
+                return input.Insert(4, "s");
+            }
+
+            return $"{https}{input}";
+        }
     }
 }
