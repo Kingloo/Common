@@ -16,7 +16,6 @@ namespace .Extensions
             return (target.IndexOf(toFind, comparison) > -1);
         }
 
-
         public static string RemoveNewLines(this string value)
         {
             if (value is null) { throw new ArgumentNullException(nameof(value)); }
@@ -45,7 +44,6 @@ namespace .Extensions
 
             return toReturn;
         }
-
         
         public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
         {
@@ -64,7 +62,6 @@ namespace .Extensions
 
             return sb.ToString();
         }
-
 
         public static IReadOnlyList<string> FindBetween(this string text, string beginning, string ending)
         {
