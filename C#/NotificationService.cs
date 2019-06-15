@@ -14,7 +14,14 @@ namespace
 
         private readonly static Queue<Notification> notificationQueue = new Queue<Notification>();
 
+        /// <summary>
+        /// How many times the timer ticked but found nothing in the queue to work on.
+        /// </summary>
         private static int timerTickCount = 0;
+
+        /// <summary>
+        /// After this many ticks of the timer where it found nothing to work on, we turn off the timer until a new notification is sent.
+        /// </summary>
         private static int timerTickMax = 15;
 
         private static DispatcherTimer queuePullTimer = null;
@@ -33,7 +40,6 @@ namespace
 
             Notification notification = new Notification(title, description, action);
 
-            notification.Loaded += (s, e) => canShowNotification = false;
             notification.Closed += (s, e) => canShowNotification = true;
 
             notificationQueue.Enqueue(notification);
@@ -69,7 +75,7 @@ namespace
 
                     Display(nextNotification);
 
-                    //canShowNotification = false;
+                    canShowNotification = false;
                 }
             }
             else
@@ -124,12 +130,12 @@ namespace
                 AddChild(grid);
 
 #if DEBUG
-                TimeSpan windowCloseInterval = TimeSpan.FromSeconds(4d);
+                double interval = 4d;
 #else
-                TimeSpan windowCloseInterval = TimeSpan.FromSeconds(15d);
+                double interval = 15d;
 #endif
 
-                closeTimer = new DispatcherCountdownTimer(windowCloseInterval, Close);
+                closeTimer = new DispatcherCountdownTimer(TimeSpan.FromSeconds(interval), Close);
 
                 Loaded += (s, e) => closeTimer.Start();
                 Closing += (s, e) => closeTimer.Stop();
@@ -147,7 +153,11 @@ namespace
                     style.Setters.Add(leftMouseDoubleClick);
                 }
 
+#if DEBUG
+                style.Setters.Add(new Setter(BackgroundProperty, Brushes.DarkGoldenrod));
+#else
                 style.Setters.Add(new Setter(BackgroundProperty, Brushes.Black));
+#endif
                 style.Setters.Add(new Setter(ForegroundProperty, Brushes.Transparent));
 
                 style.Setters.Add(new Setter(TopmostProperty, true));
@@ -187,10 +197,11 @@ namespace
 
                 for (int i = 0; i < numRows; i++)
                 {
-                    grid.RowDefinitions.Add(new RowDefinition
-                    {
-                        Height = GridLength.Auto
-                    });
+                    grid.RowDefinitions.Add(
+                        new RowDefinition
+                        {
+                            Height = GridLength.Auto
+                        });
                 }
 
                 return grid;
@@ -231,9 +242,9 @@ namespace
             {
                 Style style = new Style(typeof(Label));
 
-                style.Setters.Add(new Setter(BackgroundProperty, Brushes.Black));
+                style.Setters.Add(new Setter(BackgroundProperty, Brushes.Transparent));
                 style.Setters.Add(new Setter(ForegroundProperty, Brushes.White));
-                style.Setters.Add(new Setter(MarginProperty, new Thickness(15d, 0d, 15d, 0d)));
+                style.Setters.Add(new Setter(PaddingProperty, new Thickness(15d, 0d, 15d, 0d)));
                 style.Setters.Add(new Setter(FontFamilyProperty, new FontFamily("Calibri")));
                 style.Setters.Add(new Setter(FontSizeProperty, 22d));
                 style.Setters.Add(new Setter(HeightProperty, 75d));
@@ -249,9 +260,9 @@ namespace
             {
                 Style style = new Style(typeof(Label));
 
-                style.Setters.Add(new Setter(BackgroundProperty, Brushes.Black));
+                style.Setters.Add(new Setter(BackgroundProperty, Brushes.Transparent));
                 style.Setters.Add(new Setter(ForegroundProperty, Brushes.White));
-                style.Setters.Add(new Setter(MarginProperty, new Thickness(0d, 0d, 15d, 0d)));
+                style.Setters.Add(new Setter(PaddingProperty, new Thickness(0d, 0d, 15d, 0d)));
                 style.Setters.Add(new Setter(FontFamilyProperty, new FontFamily("Calibri")));
                 style.Setters.Add(new Setter(FontSizeProperty, 14d));
                 style.Setters.Add(new Setter(HeightProperty, 40d));
