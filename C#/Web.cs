@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Security.Authentication;
 using System.Threading.Tasks;
 
 namespace .Common
@@ -11,7 +12,8 @@ namespace .Common
         {
             AllowAutoRedirect = true,
             AutomaticDecompression = DecompressionMethods.Deflate | DecompressionMethods.GZip,
-            MaxAutomaticRedirections = 3
+            MaxAutomaticRedirections = 3,
+            SslProtocols = SslProtocols.Tls12
         };
 
         private static readonly HttpClient client = new HttpClient(handler)
