@@ -54,7 +54,7 @@ namespace .Common
 
     public class Download
     {
-        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/66.0";
+        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/67.0";
         
         private static HttpClient client = null;
 
@@ -73,7 +73,7 @@ namespace .Common
 
             client = new HttpClient(handler)
             {
-                Timeout = TimeSpan.FromSeconds(5d)
+                Timeout = TimeSpan.FromSeconds(6d)
             };
 
             if (!client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent))
