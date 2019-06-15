@@ -19,10 +19,10 @@ namespace .Common
             Timeout = TimeSpan.FromSeconds(7d)
         };
 
-        public static Task<(HttpStatusCode, string)> DownloadHtmlAsync(Uri uri)
-            => DownloadHtmlAsync(uri, null);
+        public static Task<(HttpStatusCode, string)> DownloadStringAsync(Uri uri)
+            => DownloadStringAsync(uri, null);
 
-        public static async Task<(HttpStatusCode, string)> DownloadHtmlAsync(Uri uri, Action<HttpRequestMessage> configureRequest)
+        public static async Task<(HttpStatusCode, string)> DownloadStringAsync(Uri uri, Action<HttpRequestMessage> configureRequest)
         {
             if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
 
