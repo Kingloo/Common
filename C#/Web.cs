@@ -45,6 +45,7 @@ namespace .Common
                 }
             }
             catch (HttpRequestException) { }
+            catch (TaskCanceledException) { }
             finally
             {
                 request?.Dispose();
