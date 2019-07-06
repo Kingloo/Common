@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace 
+namespace .Common
 {
     public static class Log
     {
@@ -36,9 +36,9 @@ namespace
         }
 
 
-        public static void Message(string message)
+        public static void Message(string msg)
         {
-            string text = FormatMessage(message);
+            string text = FormatMessage(msg);
 
             WriteToFile(text);
         }
