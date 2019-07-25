@@ -14,15 +14,15 @@ module HumanReadableBytesConverter
 
     let humanReadableBytes64 (bytes: int64) : string =
         let cc = CultureInfo.CurrentCulture
-        let decBytes = System.Convert.ToDecimal(bytes)
-        if decBytes < oneKiB then sprintf "%i bytes" bytes
-        else if decBytes < oneMiB then String.Format(cc, "{0:0.##} KiB", decBytes / oneKiB)
-        else if decBytes < oneGiB then String.Format(cc, "{0:0.##} MiB", decBytes / oneMiB)
-        else if decBytes < oneTiB then String.Format(cc, "{0:0.###} GiB", decBytes / oneGiB)
-        else if decBytes < onePiB then String.Format(cc, "{0:0.###} TiB", decBytes / oneTiB)
-        else if decBytes < oneEiB then String.Format(cc, "{0:0.###} PiB", decBytes / onePiB)
-        else if decBytes < oneZiB then String.Format(cc, "{0:0.###} EiB", decBytes / oneEiB)
-        else if decBytes < oneYiB then String.Format(cc, "{0:0.###} ZiB", decBytes / oneZiB)
-        else String.Format(cc, "{0:0.###} YiB", decBytes / oneYiB)
+        match System.Convert.ToDecimal(bytes) with
+            | b when b < oneKiB -> String.Format(cc, "{0} bytes", b)
+            | b when b < oneMiB -> String.Format(cc, "{0:0.##} KiB", b / oneKiB)
+            | b when b < oneGiB -> String.Format(cc, "{0:0.##} MiB", b / oneMiB)
+            | b when b < oneTiB -> String.Format(cc, "{0:0.###} GiB", b / oneGiB)
+            | b when b < onePiB -> String.Format(cc, "{0:0.###} TiB", b / oneTiB)
+            | b when b < oneEiB -> String.Format(cc, "{0:0.###} PiB", b / onePiB)
+            | b when b < oneZiB -> String.Format(cc, "{0:0.###} EiB", b / oneEiB)
+            | b when b < oneYiB -> String.Format(cc, "{0:0.###} ZiB", b / oneZiB)
+            | b -> String.Format(cc, "{0:0.###} YiB", b / oneYiB)
 
     let humanReadableBytes32 (bytes: int) : string = humanReadableBytes64 (int64(bytes))
