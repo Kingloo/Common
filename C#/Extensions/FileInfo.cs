@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 
-namespace 
+namespace .Extensions
 {
     public static class FileInfoExtensions
     {
@@ -10,16 +10,14 @@ namespace
         {
             if (file is null) { throw new ArgumentNullException(nameof(file)); }
 
-            Launch(file, new ProcessStartInfo(file.FullName));
-        }
-
-        public static void Launch(this FileSystemInfo file, ProcessStartInfo processStartInfo)
-        {
-            if (file is null) { throw new ArgumentNullException(nameof(file)); }
-
             if (file.Exists)
             {
-                Process.Start(processStartInfo);
+                ProcessStartInfo pInfo = new ProcessStartInfo(file.FullName)
+                {
+                    UseShellExecute = true
+                };
+
+                Process.Start(pInfo);
             }
         }
     }
