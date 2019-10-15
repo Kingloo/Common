@@ -20,26 +20,28 @@ namespace .Extensions
         {
             if (value is null) { throw new ArgumentNullException(nameof(value)); }
 
+            var sco = StringComparison.Ordinal;
+
             string toReturn = value;
 
-            if (toReturn.Contains("\r\n"))
+            if (toReturn.Contains("\r\n", sco))
             {
-                toReturn = toReturn.Replace("\r\n", " ");
+                toReturn = toReturn.Replace("\r\n", " ", sco);
             }
 
-            if (toReturn.Contains("\r"))
+            if (toReturn.Contains("\r", sco))
             {
-                toReturn = toReturn.Replace("\r", " ");
+                toReturn = toReturn.Replace("\r", " ", sco);
             }
 
-            if (toReturn.Contains("\n"))
+            if (toReturn.Contains("\n", sco))
             {
-                toReturn = toReturn.Replace("\n", " ");
+                toReturn = toReturn.Replace("\n", " ", sco);
             }
 
-            if (toReturn.Contains(Environment.NewLine))
+            if (toReturn.Contains(Environment.NewLine, sco))
             {
-                toReturn = toReturn.Replace(Environment.NewLine, " ");
+                toReturn = toReturn.Replace(Environment.NewLine, " ", sco);
             }
 
             return toReturn;
@@ -63,7 +65,7 @@ namespace .Extensions
             return sb.ToString();
         }
 
-        public static IReadOnlyList<string> FindBetween(this string text, string beginning, string ending)
+        public static IReadOnlyCollection<string> FindBetween(this string text, string beginning, string ending)
         {
             if (text is null) { throw new ArgumentNullException(nameof(text)); }
 
@@ -104,7 +106,7 @@ namespace .Extensions
                 return input.Insert(4, "s");
             }
 
-            return $"{https}{input}";
+            return string.Format(CultureInfo.CurrentCulture, "{0}{1}", https, input);
         }
     }
 }
