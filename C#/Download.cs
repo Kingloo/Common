@@ -23,10 +23,19 @@ namespace .Common
     {
         public string UnaddableHeader { get; } = string.Empty;
 
+        public HeaderException()
+            : this(string.Empty, null)
+        { }
+
         public HeaderException(string header)
-            : base($"unaddable header: {header}")
+            : this(header, null)
+        { }
+
+        public HeaderException(string header, Exception innerException)
+            : base(header, innerException)
         {
             UnaddableHeader = header;
+            Message = string.Format(CultureInfo.CurrentCulture, "unaddable header: {0}", UnaddableHeader);
         }
     }
 
@@ -54,7 +63,7 @@ namespace .Common
 
     public class Download
     {
-        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/67.0";
+        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/69.0";
         
         private static HttpClient client = null;
 
@@ -109,7 +118,7 @@ namespace .Common
             Int64 prevTotalBytesReceived = 0L;
             Int64 reportingThreshold = 1024L * 333L; // 333 KiB
 
-            byte[] buffer = new byte[1024 * 1024]; // 1 MiB - but bytesRead below is only ever 16384 bytes
+            byte[] buffer = new byte[1024 * 1024]; // 1 MiB - but bytesRead below only ever seems to be 16384 bytes
 
             HttpRequestMessage request = null;
             HttpResponseMessage response = null;
@@ -143,14 +152,12 @@ namespace .Common
 
                     if ((totalBytesReceived - prevTotalBytesReceived) > reportingThreshold)
                     {
-                        var dlProgress = new DownloadProgress(
-                            request.RequestUri,
-                            File.FullName,
-                            bytesRead,
-                            totalBytesReceived,
-                            contentLength);
+                        if (progress != null)
+                        {
+                            var dlProgress = new DownloadProgress(request.RequestUri, File.FullName, bytesRead, totalBytesReceived, contentLength);
 
-                        progress.Report(dlProgress);
+                            progress.Report(dlProgress);
+                        }
 
                         prevTotalBytesReceived = totalBytesReceived;
                     }
@@ -189,6 +196,9 @@ namespace .Common
         public void Cancel()
         {
             cts?.Cancel();
+            cts?.Dispose();
+
+            cts = null;
         }
     }
 }

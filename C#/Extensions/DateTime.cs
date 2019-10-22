@@ -12,8 +12,8 @@ namespace .Extensions
                 string message = string.Format(
                     CultureInfo.CurrentCulture,
                     "{0} was later than the upper bound {1}",
-                    lowerBound.ToString(),
-                    upperBound.ToString());
+                    lowerBound.ToString(CultureInfo.CurrentCulture),
+                    upperBound.ToString(CultureInfo.CurrentCulture));
 
                 throw new ArgumentException(message, nameof(datetime));
             }

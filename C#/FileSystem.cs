@@ -25,7 +25,7 @@ namespace .Common
 
                     while ((line = await sr.ReadLineAsync().ConfigureAwait(false)) != null)
                     {
-                        if (!line.StartsWith(commentChar))
+                        if (!line.StartsWith(commentChar, StringComparison.Ordinal))
                         {
                             lines.Add(line);
                         }
