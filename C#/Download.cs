@@ -1,9 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using System.Globalization;
+using System;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net;
 using System.Net.Http;
+using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +16,8 @@ namespace .Common
         Failure,
         Canceled,
         FileAlreadyExists,
-        InternetError
+        InitiationFailed,
+        Interrupted
     }
 
     public class HeaderException : Exception
@@ -35,7 +36,6 @@ namespace .Common
             : base(header, innerException)
         {
             UnaddableHeader = header;
-            Message = string.Format(CultureInfo.CurrentCulture, "unaddable header: {0}", UnaddableHeader);
         }
     }
 
@@ -64,141 +64,217 @@ namespace .Common
     public class Download
     {
         private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/69.0";
-        
-        private static HttpClient client = null;
 
-        private CancellationTokenSource cts = null;
+        private Uri uri = null;
+        private string path = string.Empty;
 
-        private static void InitClient()
+        public Download(Uri uri, string path)
         {
-            if (client != null) { return; }
+            this.uri = uri ?? throw new ArgumentNullException(nameof(uri));
+            this.path = path ?? throw new ArgumentNullException(nameof(path));
+        }
 
-            var handler = new HttpClientHandler
+        private static HttpClient EnsureClientCreated()
+        {
+            HttpClientHandler handler = new HttpClientHandler
             {
                 AllowAutoRedirect = true,
                 AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                MaxAutomaticRedirections = 3
+                MaxAutomaticRedirections = 3,
+                SslProtocols = SslProtocols.Tls12
             };
 
-            client = new HttpClient(handler)
+            HttpClient client = new HttpClient(handler, true)
             {
-                Timeout = TimeSpan.FromSeconds(6d)
+                Timeout = TimeSpan.FromSeconds(5d)
             };
 
             if (!client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent))
             {
                 throw new HeaderException(userAgent);
             }
+
+            return client;
         }
 
-        #region Properties
-        public Uri Uri { get; } = null;
-        public FileInfo File { get; } = null;
-        #endregion
+        public Task<DownloadResult> ToFileAsync() => ToFileAsync(null, CancellationToken.None);
 
-        public Download(Uri uri, FileInfo file)
+        public Task<DownloadResult> ToFileAsync(IProgress<DownloadProgress> progress)
         {
-            Uri = uri ?? throw new ArgumentNullException(nameof(uri));
-            File = file ?? throw new ArgumentNullException(nameof(file));
+            if (progress is null) { throw new ArgumentNullException(nameof(progress)); }
+
+            return ToFileAsync(progress, CancellationToken.None);
         }
 
-        public Task<DownloadResult> ToFileAsync()
-            => ToFileAsync(null);
+        public Task<DownloadResult> ToFileAsync(CancellationToken token) => ToFileAsync(null, token);
 
-        public async Task<DownloadResult> ToFileAsync(IProgress<DownloadProgress> progress)
+        public async Task<DownloadResult> ToFileAsync(IProgress<DownloadProgress> progress, CancellationToken token)
         {
-            if (File.Exists) { return DownloadResult.FileAlreadyExists; }
+            if (File.Exists(path))
+            {
+                return DownloadResult.FileAlreadyExists;
+            }
 
-            InitClient();
+            using (HttpClient client = EnsureClientCreated())
+            {
+                (Stream download, Int64? contentLength) = await SetupStreamAsync(client, uri).ConfigureAwait(false);
 
-            cts = new CancellationTokenSource();
+                if (download is null)
+                {
+                    return DownloadResult.InitiationFailed;
+                }
 
-            int bytesRead = 0;
-            Int64 totalBytesReceived = 0L;
-            Int64 prevTotalBytesReceived = 0L;
-            Int64 reportingThreshold = 1024L * 333L; // 333 KiB
+                Pipe pipe = new Pipe();
+                
+                Task<DownloadResult> downloadFromStream = WriteFromDownloadStreamToPipeAsync(download, pipe.Writer, token);
+                Task writeToDisk = ReadFromPipeAndWriteToDiskAsync(path, pipe.Reader, progress, contentLength, token);
+                
+                await Task.WhenAll(downloadFromStream, writeToDisk).ConfigureAwait(false);
 
-            byte[] buffer = new byte[1024 * 1024]; // 1 MiB - but bytesRead below only ever seems to be 16384 bytes
+                return downloadFromStream.IsCompleted ? downloadFromStream.Result : DownloadResult.Failure;
+            }
+        }
 
+        private static async Task<(Stream, Int64?)> SetupStreamAsync(HttpClient client, Uri uri)
+        {
             HttpRequestMessage request = null;
             HttpResponseMessage response = null;
 
-            Stream receive = null;
-            Stream save = null;
-
             try
             {
-                request = new HttpRequestMessage(HttpMethod.Get, Uri);
+                request = new HttpRequestMessage(HttpMethod.Get, uri);
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
-                var httpOption = HttpCompletionOption.ResponseHeadersRead;
-
-                response = await client.SendAsync(request, httpOption, cts.Token).ConfigureAwait(false);
-
-                receive = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-
-                save = new FileStream(
-                    File.FullName,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    1024 * 1024 * 15, // 15 MiB
-                    FileOptions.Asynchronous);
-
-                Int64? contentLength = response.Content.Headers.ContentLength;
-
-                while ((bytesRead = await receive.ReadAsync(buffer, 0, buffer.Length, cts.Token).ConfigureAwait(false)) > 0)
+                if (response.IsSuccessStatusCode)
                 {
-                    totalBytesReceived += bytesRead;
+                    var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
 
-                    if ((totalBytesReceived - prevTotalBytesReceived) > reportingThreshold)
-                    {
-                        if (progress != null)
-                        {
-                            var dlProgress = new DownloadProgress(request.RequestUri, File.FullName, bytesRead, totalBytesReceived, contentLength);
-
-                            progress.Report(dlProgress);
-                        }
-
-                        prevTotalBytesReceived = totalBytesReceived;
-                    }
-
-                    await save.WriteAsync(buffer, 0, bytesRead).ConfigureAwait(false);
+                    return (stream, response.Content.Headers.ContentLength);
                 }
-
-                await save.FlushAsync().ConfigureAwait(false);
+                else
+                {
+                    return (null, null);
+                }
             }
             catch (HttpRequestException)
             {
-                return DownloadResult.InternetError;
-            }
-            catch (IOException)
-            {
-                return DownloadResult.Failure;
+                return (null, null);
             }
             catch (TaskCanceledException)
             {
-                return DownloadResult.Canceled;
+                return (null, null);
             }
             finally
             {
                 request?.Dispose();
-                response?.Dispose();
-                receive?.Dispose();
-                save?.Dispose();
-                cts?.Dispose();
-
-                cts = null;
+                
+                // don't dispose response here, otherwise the content stream will close as well
             }
-
-            return DownloadResult.Success;
         }
 
-        public void Cancel()
+        private static async Task<DownloadResult> WriteFromDownloadStreamToPipeAsync(Stream stream, PipeWriter writer, CancellationToken token)
         {
-            cts?.Cancel();
-            cts?.Dispose();
+            int BUFSIZE = 1024 * 50;
+            int bytesRead = 0;
 
-            cts = null;
+            try
+            {
+                while (true)
+                {
+                    Memory<byte> memory = writer.GetMemory(BUFSIZE);
+
+                    bytesRead = await stream.ReadAsync(memory, token).ConfigureAwait(false);
+
+                    if (bytesRead < 1)
+                    {
+                        break;
+                    }
+
+                    writer.Advance(bytesRead);
+
+                    FlushResult flushResult = await writer.FlushAsync().ConfigureAwait(false);
+
+                    if (flushResult.IsCompleted)
+                    {
+                        break;
+                    }
+                }
+                
+                return DownloadResult.Success;
+            }
+            catch (HttpRequestException)
+            {
+                return DownloadResult.Interrupted;
+            }
+            finally
+            {
+                writer.Complete();
+            }
+        }
+
+        private async Task ReadFromPipeAndWriteToDiskAsync(string path, PipeReader reader, IProgress<DownloadProgress> progress, Int64? contentLength, CancellationToken token)
+        {
+            FileStream fsAsync = null;
+
+            Int64 previousBytesReceived = 0;
+            Int64 totalBytesReceived = 0;
+
+            Int64 threshold = 1024 * 100;
+
+            try
+            {
+                fsAsync = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous);
+
+                while (true)
+                {
+                    ReadResult readResult = await reader.ReadAsync(token).ConfigureAwait(false);
+
+                    foreach (ReadOnlyMemory<byte> segment in readResult.Buffer)
+                    {
+                        await fsAsync.WriteAsync(segment, token).ConfigureAwait(false);
+
+                        totalBytesReceived += segment.Length;
+                    }
+
+                    reader.AdvanceTo(readResult.Buffer.End);
+
+                    if ((totalBytesReceived - previousBytesReceived) > threshold)
+                    {
+                        if (progress != null)
+                        {
+                            var downloadProgress = new DownloadProgress(uri, path, readResult.Buffer.Length, totalBytesReceived, contentLength);
+
+                            progress.Report(downloadProgress);
+                        }
+                        
+                        previousBytesReceived = totalBytesReceived;
+                    }
+                    
+                    if (readResult.IsCompleted)
+                    {
+                        break;
+                    }
+                }
+
+                await fsAsync.FlushAsync().ConfigureAwait(false);
+            }
+            catch (FileNotFoundException)
+            {
+                return;
+            }
+            catch (IOException)
+            {
+                return;
+            }
+            finally
+            {
+                if (fsAsync != null)
+                {
+                    fsAsync.Dispose();
+                }
+                
+                reader.Complete();
+            }
         }
     }
 }
