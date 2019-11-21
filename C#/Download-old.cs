@@ -61,25 +61,12 @@ namespace .Common
         }
     }
 
-    public class Download : IDisposable
+    public class Download
     {
-        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/70.0";
+        private const string userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x66; rv:64.0) Gecko/20100101 Firefox/69.0";
 
-        private readonly Uri uri = null;
-        private readonly string path = string.Empty;
-
-        private static readonly HttpClientHandler handler = new HttpClientHandler
-        {
-            AllowAutoRedirect = true,
-            AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-            MaxAutomaticRedirections = 3,
-            SslProtocols = SslProtocols.Tls12
-        };
-
-        private readonly HttpClient client = new HttpClient(handler, false)
-        {
-            Timeout = TimeSpan.FromSeconds(7d)
-        };
+        private Uri uri = null;
+        private string path = string.Empty;
 
         public Download(Uri uri, string path)
         {
@@ -87,14 +74,27 @@ namespace .Common
             this.path = path ?? throw new ArgumentNullException(nameof(path));
         }
 
-        private void SetClientHeader()
+        private static HttpClient EnsureClientCreated()
         {
-            client.DefaultRequestHeaders.Clear();
+            HttpClientHandler handler = new HttpClientHandler
+            {
+                AllowAutoRedirect = true,
+                AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                MaxAutomaticRedirections = 3,
+                SslProtocols = SslProtocols.Tls12
+            };
+
+            HttpClient client = new HttpClient(handler, true)
+            {
+                Timeout = TimeSpan.FromSeconds(5d)
+            };
 
             if (!client.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent))
             {
                 throw new HeaderException(userAgent);
             }
+
+            return client;
         }
 
         public Task<DownloadResult> ToFileAsync() => ToFileAsync(null, CancellationToken.None);
@@ -115,31 +115,35 @@ namespace .Common
                 return DownloadResult.FileAlreadyExists;
             }
 
-            (Stream download, Int64? contentLength) = await SetupStreamAsync(uri).ConfigureAwait(false);
-
-            if (download is null)
+            using (HttpClient client = EnsureClientCreated())
             {
-                return DownloadResult.InitiationFailed;
+                (Stream download, Int64? contentLength) = await SetupStreamAsync(client, uri).ConfigureAwait(false);
+
+                if (download is null)
+                {
+                    return DownloadResult.InitiationFailed;
+                }
+
+                Pipe pipe = new Pipe();
+                
+                Task<DownloadResult> downloadFromStream = WriteFromDownloadStreamToPipeAsync(download, pipe.Writer, token);
+                Task writeToDisk = ReadFromPipeAndWriteToDiskAsync(path, pipe.Reader, progress, contentLength, token);
+                
+                await Task.WhenAll(downloadFromStream, writeToDisk).ConfigureAwait(false);
+
+                return downloadFromStream.IsCompleted ? downloadFromStream.Result : DownloadResult.Failure;
             }
-
-            Pipe pipe = new Pipe();
-
-            Task<DownloadResult> downloadFromStream = WriteFromDownloadStreamToPipeAsync(download, pipe.Writer, token);
-            Task writeToDisk = ReadFromPipeAndWriteToDiskAsync(path, pipe.Reader, progress, contentLength, token);
-
-            await Task.WhenAll(downloadFromStream, writeToDisk).ConfigureAwait(false);
-
-            return downloadFromStream.IsCompleted ? downloadFromStream.Result : DownloadResult.Failure;
         }
 
-        private async Task<(Stream, Int64?)> SetupStreamAsync(Uri uri)
+        private static async Task<(Stream, Int64?)> SetupStreamAsync(HttpClient client, Uri uri)
         {
             HttpRequestMessage request = null;
+            HttpResponseMessage response = null;
 
             try
             {
                 request = new HttpRequestMessage(HttpMethod.Get, uri);
-                HttpResponseMessage response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+                response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -171,6 +175,7 @@ namespace .Common
         private static async Task<DownloadResult> WriteFromDownloadStreamToPipeAsync(Stream stream, PipeWriter writer, CancellationToken token)
         {
             int BUFSIZE = 1024 * 50;
+            int bytesRead = 0;
 
             try
             {
@@ -178,7 +183,7 @@ namespace .Common
                 {
                     Memory<byte> memory = writer.GetMemory(BUFSIZE);
 
-                    int bytesRead = await stream.ReadAsync(memory, token).ConfigureAwait(false);
+                    bytesRead = await stream.ReadAsync(memory, token).ConfigureAwait(false);
 
                     if (bytesRead < 1)
                     {
@@ -263,32 +268,13 @@ namespace .Common
             }
             finally
             {
-                fsAsync?.Dispose();
-
+                if (fsAsync != null)
+                {
+                    fsAsync.Dispose();
+                }
+                
                 reader.Complete();
             }
-        }
-
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    client?.Dispose();
-                    handler?.Dispose();
-                }
-
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
         }
     }
 }
