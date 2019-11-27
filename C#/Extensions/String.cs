@@ -81,9 +81,12 @@ namespace .Extensions
                 ".+?",
                 Regex.Escape(ending));
 
-            foreach (Match m in Regex.Matches(text, pattern))
+            foreach (Match? m in Regex.Matches(text, pattern))
             {
-                results.Add(m.Groups[1].Value);
+                if (m != null)
+				{
+					results.Add(m.Groups[1].Value);
+				}
             }
 
             return results;
