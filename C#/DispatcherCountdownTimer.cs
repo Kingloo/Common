@@ -3,13 +3,13 @@ using System.Globalization;
 using System.Text;
 using System.Windows.Threading;
 
-namespace 
+namespace .Common
 {
     public class DispatcherCountdownTimer
     {
         #region Fields
         private readonly DateTime created = DateTime.Now;
-        private readonly Action tick = null;
+        private readonly Action tick;
         private DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.Background);
         #endregion
 
@@ -50,8 +50,6 @@ namespace
             {
                 timer.Stop();
                 timer.Tick -= Timer_Tick;
-
-                timer = null;
             }
         }
 

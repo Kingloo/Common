@@ -123,7 +123,7 @@ namespace .Common
 
         private static void WriteToFile(string text)
         {
-            FileStream fs = default;
+            FileStream? fs = null;
 
             try
             {
@@ -144,6 +144,7 @@ namespace .Common
                     sw.Flush();
                 }
             }
+            catch (FileNotFoundException) { }
             catch (IOException) { }
             finally
             {
@@ -153,7 +154,7 @@ namespace .Common
 
         private static async Task WriteToFileAsync(string text)
         {
-            FileStream fsAsync = default;
+            FileStream? fsAsync = default;
 
             try
             {
@@ -174,6 +175,7 @@ namespace .Common
                     await sw.FlushAsync().ConfigureAwait(false);
                 }
             }
+            catch (FileNotFoundException) { }
             catch (IOException) { }
             finally
             {

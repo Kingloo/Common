@@ -5,7 +5,7 @@ namespace
 {
     public abstract class BindableBase : INotifyPropertyChanged
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
 
         protected bool SetProperty<T>(ref T storage, T value, string propertyName)
         {
