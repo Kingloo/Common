@@ -11,15 +11,11 @@ namespace .Extensions
     {
         public static bool ContainsExt(this string target, string toFind, StringComparison comparison)
         {
-            if (target is null) { throw new ArgumentNullException(nameof(target)); }
-
             return (target.IndexOf(toFind, comparison) > -1);
         }
 
         public static string RemoveNewLines(this string value)
         {
-            if (value is null) { throw new ArgumentNullException(nameof(value)); }
-
             var sco = StringComparison.Ordinal;
 
             string toReturn = value;
@@ -49,9 +45,6 @@ namespace .Extensions
         
         public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
         {
-            if (self is null) { throw new ArgumentNullException(nameof(self)); }
-            if (categories is null) { throw new ArgumentNullException(nameof(categories)); }
-
             var sb = new StringBuilder();
 
             foreach (char c in self)
@@ -67,8 +60,6 @@ namespace .Extensions
 
         public static IReadOnlyCollection<string> FindBetween(this string text, string beginning, string ending)
         {
-            if (text is null) { throw new ArgumentNullException(nameof(text)); }
-
             if (String.IsNullOrEmpty(beginning)) { throw new ArgumentException("beginning was NullOrEmpty", nameof(beginning)); }
             if (String.IsNullOrEmpty(ending)) { throw new ArgumentException("ending was NullOrEmpty", nameof(ending)); }
 
@@ -94,8 +85,6 @@ namespace .Extensions
 
         public static string EnsureStartsWithHttps(this string input)
         {
-            if (input is null) { throw new ArgumentNullException(nameof(input)); }
-
             const string https = "https://";
             const string http = "http://";
 
