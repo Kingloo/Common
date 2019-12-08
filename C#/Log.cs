@@ -62,8 +62,6 @@ namespace .Common
 
         public static void Exception(Exception ex, string message, bool includeStackTrace)
         {
-            if (ex is null) { throw new ArgumentNullException(nameof(ex)); }
-
             string text = FormatException(ex, message, includeStackTrace);
 
             Message(text);
@@ -80,8 +78,6 @@ namespace .Common
 
         public static Task ExceptionAsync(Exception ex, string message, bool includeStackTrace)
         {
-            if (ex is null) { throw new ArgumentNullException(nameof(ex)); }
-
             string text = FormatException(ex, message, includeStackTrace);
             
             return MessageAsync(text);
@@ -154,7 +150,7 @@ namespace .Common
 
         private static async Task WriteToFileAsync(string text)
         {
-            FileStream? fsAsync = default;
+            FileStream? fsAsync = null;
 
             try
             {
