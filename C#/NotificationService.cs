@@ -94,8 +94,6 @@ namespace .Common
 
         private static void Display(Notification notification)
         {
-            if (notification is null) { throw new ArgumentNullException(nameof(notification)); }
-
             notification.Show();
 
             System.Media.SystemSounds.Hand.Play();

@@ -7,8 +7,6 @@ namespace .Extensions
     {
         public static void OpenInBrowser(this Uri uri)
         {
-            if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
-
             if (uri.IsAbsoluteUri)
             {
                 ProcessStartInfo pInfo = new ProcessStartInfo(uri.AbsoluteUri)

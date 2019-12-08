@@ -26,8 +26,6 @@ namespace .Common
 
         public static async Task<(HttpStatusCode, string)> DownloadStringAsync(Uri uri, Action<HttpRequestMessage> configureRequest)
         {
-            if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
-
             HttpStatusCode status = HttpStatusCode.Unused;
             string text = string.Empty;
 

@@ -8,8 +8,6 @@ namespace .Extensions
     {
         public static void Launch(this FileSystemInfo file)
         {
-            if (file is null) { throw new ArgumentNullException(nameof(file)); }
-
             if (file.Exists)
             {
                 ProcessStartInfo pInfo = new ProcessStartInfo(file.FullName)

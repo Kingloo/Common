@@ -15,8 +15,6 @@ namespace
         /// <returns>A new Uri with amended path, but otherwise identical.</returns>
         public static Uri RemovePathSegment(Uri uri, string pattern)
         {
-            if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
-
             if (String.IsNullOrEmpty(pattern))
             {
                 throw new ArgumentException("invalid Regex pattern", nameof(pattern));
@@ -50,8 +48,6 @@ namespace
         /// <returns>An otherwise identical Uri.</returns>
         public static Uri RemoveQuery(Uri uri)
         {
-            if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
-
             return new UriBuilder
             {
                 Fragment = uri.Fragment,
