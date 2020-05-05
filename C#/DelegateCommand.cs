@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace 
+namespace .Common
 {
     public abstract class Command : ICommand
     {
@@ -17,8 +17,8 @@ namespace
 
     public class DelegateCommand : Command
     {
-        private readonly Action _execute = null;
-        private readonly Predicate<object> _canExecute = null;
+        private readonly Action _execute;
+        private readonly Predicate<object> _canExecute;
 
         public DelegateCommand(Action execute, Predicate<object> canExecute)
         {
@@ -26,7 +26,7 @@ namespace
             _canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute));
         }
 
-        public override void Execute(object parameter)
+        public override void Execute(object? parameter)
             => _execute();
 
         public override bool CanExecute(object parameter)
@@ -35,8 +35,8 @@ namespace
 
     public class DelegateCommand<T> : Command
     {
-        private readonly Action<T> _execute = null;
-        private readonly Predicate<T> _canExecute = null;
+        private readonly Action<T> _execute;
+        private readonly Predicate<T> _canExecute;
 
         public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
         {
@@ -53,8 +53,8 @@ namespace
 
     public class DelegateCommandAsync : Command
     {
-        private readonly Func<Task> _executeAsync = null;
-        private readonly Predicate<object> _canExecute = null;
+        private readonly Func<Task> _executeAsync;
+        private readonly Predicate<object> _canExecute;
         private bool _isExecuting = false;
 
         public DelegateCommandAsync(Func<Task> executeAsync, Predicate<object> canExecute)
@@ -63,7 +63,7 @@ namespace
             _canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute));
         }
 
-        public async override void Execute(object parameter)
+        public async override void Execute(object? parameter)
             => await ExecuteAsync();
 
         private async Task ExecuteAsync()
@@ -83,8 +83,8 @@ namespace
 
     public class DelegateCommandAsync<T> : Command
     {
-        private readonly Func<T, Task> _executeAsync = null;
-        private readonly Predicate<T> _canExecute = null;
+        private readonly Func<T, Task> _executeAsync;
+        private readonly Predicate<T> _canExecute;
         private bool _isExecuting = false;
 
         public DelegateCommandAsync(Func<T, Task> executeAsync, Predicate<T> canExecute)
