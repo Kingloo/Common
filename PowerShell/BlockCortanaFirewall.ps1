@@ -1,0 +1,1 @@
+Get-NetFirewallRule -DisplayName "Cortana" | Set-NetFirewallRule -Action Block
