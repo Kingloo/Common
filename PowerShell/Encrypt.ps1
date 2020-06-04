@@ -47,5 +47,5 @@ function Encrypt(
         Remove-Item -Path $File;
     }
 
-    return $encryptedFile;
+    return (Get-Item -Path $encryptedFile).FullName;
 }
