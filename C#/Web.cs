@@ -206,7 +206,7 @@ namespace .Common
                 return new StringResponse(uri, Reason.Success)
                 {
                     Status = response.StatusCode,
-                    Text = text,
+                    Text = text
                 };
             }
             catch (HttpRequestException)
@@ -251,6 +251,7 @@ namespace .Common
 
                 return new DataResponse(uri, Reason.Success)
                 {
+                    Status = response.StatusCode,
                     Data = data
                 };
             }
