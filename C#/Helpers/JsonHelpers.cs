@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 
 namespace .Common
 {
-    public static class Json
+    public static class JsonHelpers
     {
         public static bool TryParse(string input, out JObject json)
         {
@@ -11,13 +11,13 @@ namespace .Common
             {
                 json = JObject.Parse(input);
 
-		        return true;
+		return true;
             }
             catch (JsonReaderException)
             {
                 json = null;
 
-		        return false;
+		return false;
             }
         }
     }
