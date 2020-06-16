@@ -308,7 +308,6 @@ namespace .Common
 
             int bytesRead = 0;
             byte[] buffer = new byte[receiveBufferSize];
-            Int64? contentLength = 0L;
             Int64 totalBytesWritten = 0L;
             Int64 prevTotalBytesWritten = 0L;
             Int64 progressReportThreshold = 1024L * 500L; // 1024 * 500 = 500 KiB
@@ -319,7 +318,7 @@ namespace .Common
 
                 response.EnsureSuccessStatusCode();
 
-                contentLength = response.Content.Headers.ContentLength;
+                Int64? contentLength = response.Content.Headers.ContentLength;
                 
                 receive = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
                 
