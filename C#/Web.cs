@@ -129,7 +129,7 @@ namespace .Common
             ContentLength = contentLength;
         }
 
-        public decimal? GetPercent() => GetDownloadRatio() * 100;
+        public decimal? GetPercent() => (if GetDownloadRatio() is decimal ratio) ? ratio * 100 : null;
 
         public string? GetPercentFormatted() => GetPercentFormatted(CultureInfo.CurrentCulture);
 
