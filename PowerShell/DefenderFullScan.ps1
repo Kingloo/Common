@@ -1,1 +1,4 @@
-Start-MpScan -ScanType FullScan
+function DefenderFullScan()
+{
+	Start-MpScan -ScanType FullScan;
+}

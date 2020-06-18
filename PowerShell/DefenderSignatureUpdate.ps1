@@ -1,1 +1,4 @@
-Update-MpSignature -UpdateSource MicrosoftUpdateServer
+function DefenderSignatureUpdate()
+{
+	Update-MpSignature -UpdateSource MicrosoftUpdateServer;
+}
