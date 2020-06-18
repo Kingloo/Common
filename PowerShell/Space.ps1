@@ -1,7 +1,6 @@
 function Space()
 {
-	$format = "#,#.#"
-	#$format = "#.#";
+	$format = "#.#";
 	$gib = 1024 * 1024 * 1024;
 
 	$totalUsed = 0;
