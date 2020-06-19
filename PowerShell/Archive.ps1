@@ -24,11 +24,5 @@ function Archive(
 
     $output = & $7zip a -t7z -mx0 -bb0 -r $Path $FileList;
 
-    if ($LASTEXITCODE -ne 0)
-    {
-        Write-Error "archive creation failed!";
-        throw;
-    }
-
     return (Get-Item -Path $Path).FullName;
 }
