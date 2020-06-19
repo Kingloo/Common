@@ -133,7 +133,7 @@ namespace .Common
         {
             if (GetDownloadRatio() is decimal ratio)
             {
-                return ratio * 100;
+                return ratio * 100m;
             }
             else
             {
