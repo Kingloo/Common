@@ -7,5 +7,5 @@ function Say(
 	$voice = New-Object System.Speech.Synthesis.SpeechSynthesizer;
 	$voice.SelectVoice("Microsoft Zira Desktop");
 	$voice.Rate = -1;
-	$voice.Speak($text);
+	$voice.Speak($Text);
 }
