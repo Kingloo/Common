@@ -1,6 +1,6 @@
 using System;
 
-namespace .Common
+namespace 
 {
     public static class TimeSpanMaths
     {
@@ -9,9 +9,11 @@ namespace .Common
             return TimeSpan.FromTicks(multiplicand.Ticks * multiplier);
         }
 
-        public static TimeSpan Pow(TimeSpan powerBase, int powerExponent)
+        public static TimeSpan Pow(TimeSpan timeSpan, double exponent)
         {
-            return TimeSpan.FromTicks(powerBase.Ticks ^ powerExponent);
+            double newTimeSecs = Math.Pow(timeSpan.TotalSeconds, exponent);
+
+            return TimeSpan.FromSeconds(newTimeSecs);
         }
     }
 }
