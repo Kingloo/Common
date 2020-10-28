@@ -1,23 +1,22 @@
-﻿using Newtonsoft.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace .Common
 {
     public static class JsonHelpers
     {
-        public static bool TryParse(string input, out JObject json)
+        public static bool TryParse(string input, [NotNullWhen(true)] out JObject? json)
         {
             try
             {
                 json = JObject.Parse(input);
-
-		return true;
+                return true;
             }
             catch (JsonReaderException)
             {
                 json = null;
-
-		return false;
+                return false;
             }
         }
     }
