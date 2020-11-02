@@ -1,6 +1,6 @@
 function getDateTime(d) { // new Date()
     let year = d.getFullYear();
-    let month = d.getMonth();
+    let month = d.getMonth() + 1; // zero-index (Jan. == 0)
     let date = d.getDate();
     let hours = d.getHours();
     let minutes = d.getMinutes();
