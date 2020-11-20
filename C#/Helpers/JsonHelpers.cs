@@ -11,11 +11,13 @@ namespace .Common
             try
             {
                 json = JObject.Parse(input);
+
                 return true;
             }
             catch (JsonReaderException)
             {
                 json = null;
+
                 return false;
             }
         }
