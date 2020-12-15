@@ -34,9 +34,9 @@ namespace .Common
 
             return timeSpan switch
             {
-                _ when timeSpan.TotalSeconds > oneDay => string.Format(ci, "{0:%d} days {0:%h} hours {0:%m} minutes {0:%s} seconds", timeSpan),
-                _ when timeSpan.TotalSeconds > oneHour => string.Format(ci, "{0:%h} hours {0:%m} minutes {0:%s} seconds", timeSpan),
-                _ when timeSpan.TotalSeconds > oneMinute => string.Format(ci, "{0:%m} minutes {0:%s} seconds", timeSpan),
+                _ when timeSpan.TotalSeconds >= oneDay => string.Format(ci, "{0:%d} days {0:%h} hours {0:%m} minutes {0:%s} seconds", timeSpan),
+                _ when timeSpan.TotalSeconds >= oneHour => string.Format(ci, "{0:%h} hours {0:%m} minutes {0:%s} seconds", timeSpan),
+                _ when timeSpan.TotalSeconds >= oneMinute => string.Format(ci, "{0:%m} minutes {0:%s} seconds", timeSpan),
                 _ => string.Format(ci, "{0:%s} seconds", timeSpan)
             };
         }
