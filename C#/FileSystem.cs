@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace .Common
+namespace imageslib.Common
 {
     public static class FileSystem
     {
@@ -17,6 +17,19 @@ namespace .Common
                 if (!Directory.Exists(folder))
                 {
                     throw new DirectoryNotFoundException($"{folder} could not be created");
+                }
+            }
+        }
+
+        public static void EnsureFileExists(string path)
+        {
+            if (!File.Exists(path))
+            {
+                using (File.Create(path)) { }
+
+                if (!File.Exists(path))
+                {
+                    throw new FileNotFoundException($"file could not be created ({path})", path);
                 }
             }
         }
