@@ -1,43 +1,86 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace .Common
 {
     public static class FileSystem
     {
-        public static async Task<string[]> LoadLinesFromFileAsync(string path, string commentChar)
+        public static ValueTask<string[]> LoadLinesFromFileAsync(string path)
+            => LoadLinesFromFileAsync(path, string.Empty, Encoding.UTF8);
+
+        public static ValueTask<string[]> LoadLinesFromFileAsync(string path, string comment)
+            => LoadLinesFromFileAsync(path, comment, Encoding.UTF8);
+        
+        public static async ValueTask<string[]> LoadLinesFromFileAsync(string path, string comment, Encoding encoding)
         {
             List<string> lines = new List<string>();
 
             FileStream fsAsync = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-
+            
             try
             {
-                using (StreamReader sr = new StreamReader(fsAsync))
+                using (StreamReader sr = new StreamReader(fsAsync, encoding))
                 {
                     string? line = string.Empty;
 
                     while ((line = await sr.ReadLineAsync().ConfigureAwait(false)) != null)
                     {
-                        if (!line.StartsWith(commentChar))
+                        bool shouldAddLine = !String.IsNullOrWhiteSpace(comment)
+                            && !line.StartsWith(comment, StringComparison.OrdinalIgnoreCase);
+
+                        if (shouldAddLine)
                         {
                             lines.Add(line);
                         }
                     }
                 }
             }
+            finally
+            {
+                if (!(fsAsync is null))
+                {
+                    await fsAsync.DisposeAsync().ConfigureAwait(false);
+                }
+            }
+            
+            return lines.ToArray();
+        }
+
+        public static ValueTask<bool> WriteLinesToFileAsync(string[] lines, string path)
+            => WriteLinesToFileAsync(lines, path, Encoding.UTF8);
+
+        public static async ValueTask<bool> WriteLinesToFileAsync(string[] lines, string path, Encoding encoding)
+        {
+            FileStream fsAsync = new FileStream(path, FileMode.Truncate, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
+            
+            try
+            {
+                using (StreamWriter sw = new StreamWriter(fsAsync, encoding))
+                {
+                    foreach (string line in lines)
+                    {
+                        await sw.WriteLineAsync(line).ConfigureAwait(false);
+                    }
+
+                    await sw.FlushAsync().ConfigureAwait(false);
+                }
+
+                return true;
+            }
             catch (IOException)
             {
-                return Array.Empty<string>();
+                return false;
             }
             finally
             {
-                fsAsync?.Dispose();
+                if (!(fsAsync is null))
+                {
+                    await fsAsync.DisposeAsync().ConfigureAwait(false);
+                }
             }
-
-            return lines.ToArray();
         }
     }
 }
