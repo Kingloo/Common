@@ -8,6 +8,19 @@ namespace .Common
 {
     public static class FileSystem
     {
+        public static void EnsureDirectoryExists(string folder)
+        {
+            if (!Directory.Exists(folder))
+            {
+                Directory.CreateDirectory(folder);
+
+                if (!Directory.Exists(folder))
+                {
+                    throw new DirectoryNotFoundException($"{folder} could not be created");
+                }
+            }
+        }
+
         public static ValueTask<string[]> LoadLinesFromFileAsync(string path)
             => LoadLinesFromFileAsync(path, string.Empty, Encoding.UTF8);
 
