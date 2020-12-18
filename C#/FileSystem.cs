@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace imageslib.Common
+namespace .Common
 {
     public static class FileSystem
     {
