@@ -5,7 +5,7 @@ function Folders()
 
 	$all = New-Object 'System.Collections.Generic.Dictionary[string,double]';
 
-	$drives = $drives = Get-WmiObject -Class Win32_logicaldisk | Where-Object { $_.DriveType -eq 4 };
+	$drives = Get-WmiObject -Class Win32_logicaldisk | Where-Object { $_.DriveType -eq 4 };
 
 	foreach ($drive in $drives)
 	{
@@ -21,16 +21,16 @@ function Folders()
 				$all[$directory.FullName] = $hrSize;
 			}
 		}
-    }
+	}
     
-    $all.GetEnumerator() |
+	$all.GetEnumerator() |
 		Sort-Object -Descending { $_.Value } |
 		Format-Table @{
-				Label = 'Directory';
-				Expression = { $_.Key };
-			},
-			@{
-				Label = 'Size (GiBs)';
-				Expression = { $_.Value.ToString($format) };
-			}
+			Label      = 'Directory';
+			Expression = { $_.Key };
+		},
+		@{
+			Label      = 'Size (GiBs)';
+			Expression = { $_.Value.ToString($format) };
+		}
 }
