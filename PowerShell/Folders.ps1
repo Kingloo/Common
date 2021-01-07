@@ -1,4 +1,8 @@
-function Folders()
+function Folders(
+	[parameter(Mandatory=$false)]
+	[int]
+	$GreaterThan = 10
+)
 {
 	$format = "#.##";
 	$gib = 1024 * 1024 * 1024;
@@ -16,7 +20,7 @@ function Folders()
 			$size = (Get-ChildItem -File -Recurse -Path $directory.FullName | ForEach-Object { $_.Length } | Measure-Object -Sum).Sum;
 			$hrSize = $size / $gib;
 
-			if ($hrSize -gt 10)
+			if ($hrSize -gt $GreaterThan)
 			{
 				$all[$directory.FullName] = $hrSize;
 			}
