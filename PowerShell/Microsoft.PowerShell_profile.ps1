@@ -1,8 +1,8 @@
 Set-StrictMode -Version 2
 
-$includeDirectory = "\Common\PowerShell\*";
+$includeDirectory = ".\Common\PowerShell\*";
 
-$psFiles = Get-ChildItem -Path $includeDirectory -Include "*.ps1";
+$psFiles = Get-ChildItem -Path $includeDirectory -Include "*.ps1" -Exclude "Microsoft.PowerShell_profile.ps1";
 
 foreach ($psFile in $psFiles)
 {
