@@ -23,10 +23,9 @@ namespace .Common
         
         public DispatcherCountdownTimer(TimeSpan span, Action tick)
         {
-            // 10,000 ticks in 1 ms => 10,000 * 1000 ticks in 1 s == 10,000,000 ticks
-            if (span.Ticks < (10_000 * 1000))
+            if (span.Ticks < (TimeSpan.TicksPerMillisecond * 1000))
             {
-                throw new ArgumentOutOfRangeException("span.Ticks cannot be less than 1 second", nameof(span));
+                throw new ArgumentOutOfRangeException(nameof(span), "span.Ticks cannot be less than 1 second");
             }
 
             this.tick = tick ?? throw new ArgumentNullException(nameof(tick));
