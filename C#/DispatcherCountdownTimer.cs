@@ -7,19 +7,27 @@ namespace .Common
 {
     public class DispatcherCountdownTimer
     {
-        #region Fields
         private readonly DateTime created = DateTime.Now;
         private readonly Action tick;
-        private DispatcherTimer timer = new DispatcherTimer(DispatcherPriority.Background);
-        #endregion
+        private DispatcherTimer? timer = new DispatcherTimer(DispatcherPriority.Background);
 
-        #region Properties
         public bool IsRunning
-            => timer != null && timer.IsEnabled;
+        {
+            get
+            {
+                return timer != null && timer.IsEnabled;
+            }
+        }
 
         public TimeSpan TimeLeft
-            => IsRunning ? ((created + timer.Interval) - DateTime.Now) : TimeSpan.Zero;
-        #endregion
+        {
+            get
+            {
+                return (timer is null)
+                    ? TimeSpan.Zero
+                    : (created + timer.Interval) - DateTime.Now;
+            }
+        }
         
         public DispatcherCountdownTimer(TimeSpan span, Action tick)
         {
@@ -41,14 +49,15 @@ namespace .Common
             Stop();
         }
 
-        public void Start() => timer.Start();
+        public void Start() => timer?.Start();
 
         public void Stop()
         {
-            if (IsRunning)
+            if (!(timer is null))
             {
                 timer.Stop();
                 timer.Tick -= Timer_Tick;
+                timer = null;
             }
         }
 
