@@ -54,7 +54,7 @@ namespace .Common
 
                     while ((line = await sr.ReadLineAsync().ConfigureAwait(false)) != null)
                     {
-                        bool shouldAddLine = !String.IsNullOrWhiteSpace(comment)
+                        bool shouldAddLine = !String.IsNullOrEmpty(comment)
                             && !line.StartsWith(comment, StringComparison.OrdinalIgnoreCase);
 
                         if (shouldAddLine)
