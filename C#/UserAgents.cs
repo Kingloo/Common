@@ -15,13 +15,13 @@ namespace .Common
         {
             // .TickCount, measured in milliseconds, increments so quickly that the last digit is random enough for our needs
             
-            return System.Environment.TickCount.ToString().Last().ToString() switch
+            return System.Environment.TickCount.ToString().Last() switch
             {
-                "1" => Firefox_85_Windows,
-                "2" => Edge_88_Windows,
-                "3" => Safari_13_1_MacOSX,
-                "4" => Chrome_85_Windows,
-                "5" => Opera_66_Windows,
+                '1' => Firefox_85_Windows,
+                '2' => Edge_88_Windows,
+                '3' => Safari_13_1_MacOSX,
+                '4' => Chrome_85_Windows,
+                '5' => Opera_66_Windows,
                 _ => Firefox_78ESR_Linux
             };
         }
