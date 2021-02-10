@@ -60,7 +60,7 @@ namespace
 
         public override string ToString()
         {
-            return Value.ToString() is string s ? s : "null";
+            return Value.ToString() ?? "null";
         }       
     }
 }
