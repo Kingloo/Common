@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 
-namespace 
+namespace .Common
 {
     public abstract class Primitive<TValue, TReference> : IEquatable<Primitive<TValue, TReference>>, IComparable<Primitive<TValue, TReference>>
         where TValue : struct
