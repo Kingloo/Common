@@ -7,6 +7,7 @@ namespace
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        [System.Diagnostics.DebuggerStepThrough]
         protected bool SetProperty<T>(ref T storage, T value, string propertyName)
         {
             if (String.IsNullOrWhiteSpace(propertyName))
@@ -26,6 +27,7 @@ namespace
             return true;
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         protected virtual void RaisePropertyChanged(string propertyName)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

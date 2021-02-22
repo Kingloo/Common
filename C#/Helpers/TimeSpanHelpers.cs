@@ -17,12 +17,15 @@ namespace .Common
             return TimeSpan.FromSeconds(newTimeSecs);
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static string GetHumanReadable(int timestampSeconds)
             => GetHumanReadable(TimeSpan.FromSeconds(timestampSeconds));
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static string GetHumanReadableMs(int timestampMs)
             => GetHumanReadable(TimeSpan.FromMilliseconds(timestampMs));
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static string GetHumanReadable(TimeSpan timeSpan)
             => GetHumanReadable(timeSpan, CultureInfo.CurrentCulture);
 

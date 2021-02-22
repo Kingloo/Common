@@ -6,6 +6,7 @@ namespace .Common
 {
     public static class JsonHelpers
     {
+        [System.Diagnostics.DebuggerStepThrough]
         public static bool TryParse(string input, [NotNullWhen(true)] out JObject? json)
         {
             try
