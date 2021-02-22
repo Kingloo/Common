@@ -13,11 +13,11 @@ namespace .Extensions
             return list.OrderBy(x => random.Next()).ToList();
         }
 
-        public static IList<T> Randomise<T>(this IEnumerable<T> enumerable)
+        public static IEnumerable<T> Randomise<T>(this IEnumerable<T> enumerable)
         {
             Random random = new Random(GetSeed());
 
-            return enumerable.ToList().OrderBy(x => random.Next()).ToList();
+            return enumerable.ToList().OrderBy(x => random.Next());
         }
 
         private static int GetSeed()
