@@ -24,7 +24,7 @@ namespace .Extensions
         {
             string ticks = DateTimeOffset.Now.Ticks.ToString();
 
-            int numberOfDigits = Int32.Parse(ticks[^1..] + 1);
+            int numberOfDigits = Int32.Parse(ticks[^1..]) + 1;
 
             Int64 seed64 = Int64.Parse(ticks[^numberOfDigits..]);
 
