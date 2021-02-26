@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace .Common
@@ -31,17 +32,34 @@ namespace .Common
 
         public static string GetHumanReadable(TimeSpan timeSpan, CultureInfo ci)
         {
-            const int oneDay = 86400;
-            const int oneHour = 3600;
-            const int oneMinute = 60;
+            List<string> timeStrings = new List<string>();
 
-            return timeSpan switch
+            int days = timeSpan.Days;
+            int hours = timeSpan.Hours;
+            int minutes = timeSpan.Minutes;
+            int seconds = timeSpan.Seconds;
+
+            if (days >= 1)
             {
-                _ when timeSpan.TotalSeconds >= oneDay => string.Format(ci, "{0:%d} days {0:%h} hours {0:%m} minutes {0:%s} seconds", timeSpan),
-                _ when timeSpan.TotalSeconds >= oneHour => string.Format(ci, "{0:%h} hours {0:%m} minutes {0:%s} seconds", timeSpan),
-                _ when timeSpan.TotalSeconds >= oneMinute => string.Format(ci, "{0:%m} minutes {0:%s} seconds", timeSpan),
-                _ => string.Format(ci, "{0:%s} seconds", timeSpan)
-            };
+                timeStrings.Add($"{days} {(days == 1 ? "day" : "days")}");
+            }
+
+            if (hours >= 1)
+            {
+                timeStrings.Add($"{hours} {(hours == 1 ? "hour" : "hours")}");
+            }
+
+            if (minutes >= 1)
+            {
+                timeStrings.Add($"{minutes} {(minutes == 1 ? "minute" : "minutes")}");
+            }
+
+            if (seconds >= 1)
+            {
+                timeStrings.Add($"{seconds} {(seconds == 1 ? "second" : "seconds")}");
+            }
+
+            return String.Join(" ", timeStrings);
         }
     }
 }
