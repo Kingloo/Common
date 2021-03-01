@@ -141,6 +141,7 @@ namespace .Common
             }
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public string? GetPercentFormatted() => GetPercentFormatted(CultureInfo.CurrentCulture);
 
         public string? GetPercentFormatted(CultureInfo ci)
@@ -191,6 +192,7 @@ namespace .Common
             Timeout = TimeSpan.FromSeconds(10d)
         };
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static Task<StringResponse> DownloadStringAsync(Uri uri)
             => DownloadStringAsync(uri, null);
 
@@ -242,6 +244,7 @@ namespace .Common
             }
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static Task<DataResponse> DownloadDataAsync(Uri uri)
             => DownloadDataAsync(uri, null);
 
@@ -292,12 +295,15 @@ namespace .Common
             }
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static Task<FileResponse> DownloadFileAsync(Uri uri, string path)
             => DownloadFileAsync(uri, path, null, null, CancellationToken.None);
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest)
             => DownloadFileAsync(uri, path, configureRequest, null, CancellationToken.None);
 
+        [System.Diagnostics.DebuggerStepThrough]
         public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress> progress)
             => DownloadFileAsync(uri, path, null, progress, CancellationToken.None);
 
