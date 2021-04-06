@@ -25,9 +25,9 @@ namespace .Common
         {
             if (!File.Exists(path))
             {
-				EnsureDirectoryExists(new FileInfo(path).DirectoryName);
+                EnsureDirectoryExists(new FileInfo(path).DirectoryName);
 
-				using (File.Create(path)) { }
+                using (File.Create(path)) { }
 
                 if (!File.Exists(path))
                 {
@@ -37,19 +37,23 @@ namespace .Common
         }
 
         [System.Diagnostics.DebuggerStepThrough]
-		public static ValueTask<string[]> LoadLinesFromFileAsync(string path)
-            => LoadLinesFromFileAsync(path, string.Empty, Encoding.UTF8);
+        public static ValueTask<string[]> LoadLinesFromFileAsync(string path)
+            => LoadLinesFromFileAsync(path, "#", Encoding.UTF8);
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public static ValueTask<string[]> LoadLinesFromFileAsync(string path, string comment)
+        [System.Diagnostics.DebuggerStepThrough]
+        public static ValueTask<string[]> LoadLinesFromFileAsync(string path, string comment)
             => LoadLinesFromFileAsync(path, comment, Encoding.UTF8);
-        
+
+        [System.Diagnostics.DebuggerStepThrough]
+        public static ValueTask<string[]> LoadLinesFromFileAsync(string path, Encoding encoding)
+            => LoadLinesFromFileAsync(path, "#", Encoding.UTF8);
+
         public static async ValueTask<string[]> LoadLinesFromFileAsync(string path, string comment, Encoding encoding)
         {
             List<string> lines = new List<string>();
 
             FileStream fsAsync = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            
+
             try
             {
                 using (StreamReader sr = new StreamReader(fsAsync, encoding))
@@ -82,18 +86,18 @@ namespace .Common
                     await fsAsync.DisposeAsync().ConfigureAwait(false);
                 }
             }
-            
+
             return lines.ToArray();
         }
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public static ValueTask<bool> WriteLinesToFileAsync(string[] lines, string path, FileMode mode)
+        [System.Diagnostics.DebuggerStepThrough]
+        public static ValueTask<bool> WriteLinesToFileAsync(string[] lines, string path, FileMode mode)
             => WriteLinesToFileAsync(lines, path, mode, Encoding.UTF8);
 
         public static async ValueTask<bool> WriteLinesToFileAsync(string[] lines, string path, FileMode mode, Encoding encoding)
         {
             FileStream fsAsync = new FileStream(path, mode, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
-            
+
             try
             {
                 using (StreamWriter sw = new StreamWriter(fsAsync, encoding))
