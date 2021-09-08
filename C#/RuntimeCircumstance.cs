@@ -10,6 +10,10 @@ namespace
 	{
 		private const string WindowsDirectory = @"C:\Program Files\dotnet";
 		private const string LinuxDirectory = "/usr/share/dotnet";
+		const string macOSX = "Mac OSX";
+		private const string freeBSD = "FreeBSD";
+		private const string unknown = "unknown platform";
+		private const string dontKnowMessage = "I don't know what the natural dotnet install directory is on {0}";
 
 		private static readonly string currentProcessDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) ?? string.Empty;
 
@@ -24,8 +28,6 @@ namespace
 
 		public static bool IsRunByDotnet()
 		{
-			string dontKnowMessage = "I don't know what the natural dotnet install directory is on {0}";
-
 			if (IsOSPlatform(OSPlatform.Windows))
 			{
 				return currentProcessDirectory.Equals(WindowsDirectory, StringComparison.Ordinal);
@@ -36,15 +38,15 @@ namespace
 			}
 			else if (IsOSPlatform(OSPlatform.OSX))
 			{
-				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, "Mac OSX"));
+				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, macOSX));
 			}
 			else if (IsOSPlatform(OSPlatform.FreeBSD))
 			{
-				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, "FreeBSD"));
+				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, freeBSD));
 			}
 			else
 			{
-				throw new PlatformNotSupportedException("unknown platform");
+				throw new PlatformNotSupportedException(unknown);
 			}
 		}
 	}
