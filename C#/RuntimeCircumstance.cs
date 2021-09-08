@@ -1,7 +1,8 @@
 using System;
 using System.Runtime.InteropServices;
+using static System.Runtime.InteropServices.RuntimeInformation;
 
-namespace ImagesViewer
+namespace 
 {
 	public static class RuntimeCircumstance
 	{
@@ -23,19 +24,19 @@ namespace ImagesViewer
 		{
 			string dontKnowMessage = "I don't know what the natural dotnet install directory is on {0}";
 
-			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+			if (IsOSPlatform(OSPlatform.Windows))
 			{
 				return currentProcessDirectory.Equals(WindowsDirectory, StringComparison.Ordinal);
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			else if (IsOSPlatform(OSPlatform.Linux))
 			{
 				return currentProcessDirectory.Equals(LinuxDirectory, StringComparison.OrdinalIgnoreCase);
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+			else if (IsOSPlatform(OSPlatform.OSX))
 			{
 				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, "Mac OSX"));
 			}
-			else if (RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+			else if (IsOSPlatform(OSPlatform.FreeBSD))
 			{
 				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, "FreeBSD"));
 			}
