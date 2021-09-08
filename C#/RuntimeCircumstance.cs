@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using static System.Runtime.InteropServices.RuntimeInformation;
 
@@ -9,7 +11,7 @@ namespace
 		private const string WindowsDirectory = @"C:\Program Files\dotnet";
 		private const string LinuxDirectory = "/usr/share/dotnet";
 
-		private static readonly string currentProcessDirectory = System.IO.Path.GetDirectoryName(System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName) ?? string.Empty;
+		private static readonly string currentProcessDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) ?? string.Empty;
 
 		public static string GetRealLocation()
 		{
