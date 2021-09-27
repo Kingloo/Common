@@ -10,7 +10,7 @@ namespace
 	{
 		private const string WindowsDirectory = @"C:\Program Files\dotnet";
 		private const string LinuxDirectory = "/usr/share/dotnet";
-		const string macOSX = "Mac OSX";
+		private const string macOSX = "Mac OSX";
 		private const string freeBSD = "FreeBSD";
 		private const string unknown = "unknown platform";
 		private const string dontKnowMessage = "I don't know what the natural dotnet install directory is on {0}";
