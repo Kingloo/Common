@@ -30,11 +30,11 @@ namespace
 		{
 			if (IsOSPlatform(OSPlatform.Windows))
 			{
-				return currentProcessDirectory.Equals(WindowsDirectory, StringComparison.Ordinal);
+				return currentProcessDirectory.Equals(WindowsDirectory, StringComparison.OrdinalIgnoreCase);
 			}
 			else if (IsOSPlatform(OSPlatform.Linux))
 			{
-				return currentProcessDirectory.Equals(LinuxDirectory, StringComparison.OrdinalIgnoreCase);
+				return currentProcessDirectory.Equals(LinuxDirectory, StringComparison.Ordinal);
 			}
 			else if (IsOSPlatform(OSPlatform.OSX))
 			{
