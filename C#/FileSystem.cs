@@ -28,7 +28,7 @@ namespace .Common
 		{
 			if (!File.Exists(path))
 			{
-				EnsureDirectoryExists(new FileInfo(path).DirectoryName);
+				EnsureDirectoryExists(new FileInfo(path)?.DirectoryName ?? string.empty);
 
 				using (File.Create(path)) { }
 
