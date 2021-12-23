@@ -11,8 +11,13 @@ namespace .Common
 	{
 		private const char defaultCommentChar = '#';
 
-		public static void EnsureDirectoryExists(string folder)
+		public static void EnsureDirectoryExists(string? folder)
 		{
+			if (String.IsNullOrWhiteSpace(folder))
+			{
+				throw new ArgumentNullException(nameof(folder), "folder was null or empty");
+			}
+
 			if (!Directory.Exists(folder))
 			{
 				Directory.CreateDirectory(folder);

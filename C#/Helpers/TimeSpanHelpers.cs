@@ -4,62 +4,62 @@ using System.Globalization;
 
 namespace .Common
 {
-    public static class TimeSpanHelpers
-    {
-        public static TimeSpan Multiply(TimeSpan multiplicand, int multiplier)
-        {
-            return TimeSpan.FromTicks(multiplicand.Ticks * multiplier);
-        }
+	public static class TimeSpanHelpers
+	{
+		public static TimeSpan Multiply(TimeSpan multiplicand, int multiplier)
+		{
+			return TimeSpan.FromTicks(multiplicand.Ticks * multiplier);
+		}
 
-        public static TimeSpan Pow(TimeSpan timeSpan, double exponent)
-        {
-            double newTimeSecs = Math.Pow(timeSpan.TotalSeconds, exponent);
+		public static TimeSpan Pow(TimeSpan timeSpan, double exponent)
+		{
+			double newTimeSecs = Math.Pow(timeSpan.TotalSeconds, exponent);
 
-            return TimeSpan.FromSeconds(newTimeSecs);
-        }
+			return TimeSpan.FromSeconds(newTimeSecs);
+		}
 
-        [System.Diagnostics.DebuggerStepThrough]
-        public static string GetHumanReadable(int timestampSeconds)
-            => GetHumanReadable(TimeSpan.FromSeconds(timestampSeconds));
+		[System.Diagnostics.DebuggerStepThrough]
+		public static string GetHumanReadable(int timestampSeconds)
+			=> GetHumanReadable(TimeSpan.FromSeconds(timestampSeconds));
 
-        [System.Diagnostics.DebuggerStepThrough]
-        public static string GetHumanReadableMs(int timestampMs)
-            => GetHumanReadable(TimeSpan.FromMilliseconds(timestampMs));
+		[System.Diagnostics.DebuggerStepThrough]
+		public static string GetHumanReadableMs(int timestampMs)
+			=> GetHumanReadable(TimeSpan.FromMilliseconds(timestampMs));
 
-        [System.Diagnostics.DebuggerStepThrough]
-        public static string GetHumanReadable(TimeSpan timeSpan)
-            => GetHumanReadable(timeSpan, CultureInfo.CurrentCulture);
+		[System.Diagnostics.DebuggerStepThrough]
+		public static string GetHumanReadable(TimeSpan timeSpan)
+			=> GetHumanReadable(timeSpan, CultureInfo.CurrentCulture);
 
-        public static string GetHumanReadable(TimeSpan timeSpan, CultureInfo ci)
-        {
-            List<string> timeStrings = new List<string>();
+		public static string GetHumanReadable(TimeSpan timeSpan, CultureInfo ci)
+		{
+			List<string> timeStrings = new List<string>();
 
-            int days = timeSpan.Days;
-            int hours = timeSpan.Hours;
-            int minutes = timeSpan.Minutes;
-            int seconds = timeSpan.Seconds;
+			int days = timeSpan.Days;
+			int hours = timeSpan.Hours;
+			int minutes = timeSpan.Minutes;
+			int seconds = timeSpan.Seconds;
 
-            if (days >= 1)
-            {
-                timeStrings.Add($"{days} {(days == 1 ? "day" : "days")}");
-            }
+			if (days >= 1)
+			{
+				timeStrings.Add($"{days} {(days == 1 ? "day" : "days")}");
+			}
 
-            if (hours >= 1)
-            {
-                timeStrings.Add($"{hours} {(hours == 1 ? "hour" : "hours")}");
-            }
+			if (hours >= 1)
+			{
+				timeStrings.Add($"{hours} {(hours == 1 ? "hour" : "hours")}");
+			}
 
-            if (minutes >= 1)
-            {
-                timeStrings.Add($"{minutes} {(minutes == 1 ? "minute" : "minutes")}");
-            }
+			if (minutes >= 1)
+			{
+				timeStrings.Add($"{minutes} {(minutes == 1 ? "minute" : "minutes")}");
+			}
 
-            if (seconds >= 1)
-            {
-                timeStrings.Add($"{seconds} {(seconds == 1 ? "second" : "seconds")}");
-            }
+			if (seconds >= 1)
+			{
+				timeStrings.Add($"{seconds} {(seconds == 1 ? "second" : "seconds")}");
+			}
 
-            return String.Join(" ", timeStrings);
-        }
-    }
+			return String.Join(" ", timeStrings);
+		}
+	}
 }

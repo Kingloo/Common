@@ -15,7 +15,7 @@ namespace
 		private const string unknown = "unknown platform";
 		private const string dontKnowMessage = "I don't know what the natural dotnet install directory is on {0}";
 
-		private static readonly string currentProcessDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName) ?? string.Empty;
+		private static readonly string currentProcessDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty) ?? string.Empty;
 
 		public static string GetRealLocation()
 		{

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace 
+namespace .Common
 {
 	public enum Reason
 	{
@@ -458,7 +458,7 @@ namespace
 
 		private static string GetExtension(string path, string extension)
 		{
-			Directory.CreateDirectory(new FileInfo(path).DirectoryName);
+			Directory.CreateDirectory(new FileInfo(path).DirectoryName ?? string.Empty);
 
 			string newPath = $"{path}.{extension}";
 
