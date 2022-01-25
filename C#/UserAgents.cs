@@ -16,7 +16,7 @@ namespace .Common
 		public const string Chrome_85_Windows = nameof(Chrome_85_Windows);
 		public const string Opera_66_Windows = nameof(Opera_66_Windows);
 
-		public static readonly IDictionary<string, string> Agents = new Dictionary<string, string>
+		private static readonly IDictionary<string, string> agents = new Dictionary<string, string>
 		{
 			{ Firefox_96_Windows, "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:96.0) Gecko/20100101 Firefox/96.0" },
 			{ Firefox_91_ESR_Linux, "Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101 Firefox/91.0" },
@@ -27,13 +27,18 @@ namespace .Common
 			{ Opera_66_Windows, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36 OPR/66.0.3515.72" }
 		};
 
+		public static string Get(string browser)
+		{
+			return agents[browser];
+		}
+
 		public static string GetRandomUserAgent()
 		{
 			Random random = new Random();
 
-			int randomNumber = random.Next(0, Agents.Count - 1);
+			int randomNumber = random.Next(0, agents.Count - 1);
 
-			return Agents.Values.ToArray()[randomNumber];
+			return agents.Values.ToArray()[randomNumber];
 		}
 	}
 }
