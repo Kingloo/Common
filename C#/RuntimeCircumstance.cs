@@ -4,16 +4,16 @@ using System.IO;
 using System.Runtime.InteropServices;
 using static System.Runtime.InteropServices.RuntimeInformation;
 
-namespace 
+namespace .Common
 {
 	public static class RuntimeCircumstance
 	{
-		private const string WindowsDirectory = @"C:\Program Files\dotnet";
-		private const string LinuxDirectory = "/usr/share/dotnet";
+		private const string windowsDirectory = @"C:\Program Files\dotnet";
+		private const string linuxDirectory = "/usr/share/dotnet";
 		private const string macOSX = "Mac OSX";
 		private const string freeBSD = "FreeBSD";
 		private const string unknown = "unknown platform";
-		private const string dontKnowMessage = "I don't know what the natural dotnet install directory is on {0}";
+		private const string dontKnowMessage = "I don't know what the default dotnet install directory is on {0}";
 
 		private static readonly string currentProcessDirectory = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule?.FileName ?? string.Empty) ?? string.Empty;
 
@@ -30,11 +30,11 @@ namespace
 		{
 			if (IsOSPlatform(OSPlatform.Windows))
 			{
-				return currentProcessDirectory.Equals(WindowsDirectory, StringComparison.OrdinalIgnoreCase);
+				return currentProcessDirectory.Equals(windowsDirectory, StringComparison.OrdinalIgnoreCase);
 			}
 			else if (IsOSPlatform(OSPlatform.Linux))
 			{
-				return currentProcessDirectory.Equals(LinuxDirectory, StringComparison.Ordinal);
+				return currentProcessDirectory.Equals(linuxDirectory, StringComparison.Ordinal);
 			}
 			else if (IsOSPlatform(OSPlatform.OSX))
 			{
