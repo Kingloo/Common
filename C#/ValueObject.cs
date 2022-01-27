@@ -7,9 +7,12 @@ namespace .Common
 		where TValue : notnull
 		where TReference : notnull, ValueObject<TValue, TReference>, new()
 	{
-#nullable disable
-		public TValue Value { get; protected set; } = default(TValue);
-#nullable enable
+		[NotNull] protected TValue? _value = default(TValue);
+		public TValue Value
+		{
+			get => _value;
+			protected set => _value = value;
+		}
 
 		protected ValueObject(TValue value)
 		{
