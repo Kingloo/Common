@@ -1,12 +1,12 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace .Common
+namespace .Helpers
 {
-	public static class JsonHelpers
+	internal static class JsonHelpers
 	{
-		public static bool TryParse(string input, out JObject? json)
+		internal static bool TryParse(string input, [NotNullWhen(true)] out JObject? json)
 		{
 			try
 			{

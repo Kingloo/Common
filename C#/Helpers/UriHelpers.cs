@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace 
+namespace .Helpers
 {
     public static class UriHelpers
     {
@@ -21,7 +21,7 @@ namespace
             }
 
             var segmentsToKeep = uri.Segments.Where(x => !Regex.IsMatch(x, pattern));
-            
+
             StringBuilder path = new StringBuilder();
 
             foreach (string each in segmentsToKeep)
