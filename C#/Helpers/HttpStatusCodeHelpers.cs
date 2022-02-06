@@ -4,9 +4,16 @@ namespace .Helpers
 {
 	public static class HttpStatusCodeHelpers
 	{
-		public static string FormatStatusCode(HttpStatusCode statusCode)
+		public static string FormatStatusCode(HttpStatusCode? statusCode)
 		{
-			return $"{statusCode} ({(int)statusCode})";
+			if (statusCode is not null)
+			{
+				return $"{statusCode} ({(int)statusCode})";
+			}
+			else
+			{
+				return "unknown";
+			}
 		}
 	}
 }
