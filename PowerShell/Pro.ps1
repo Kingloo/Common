@@ -1,4 +1,0 @@
-function Pro()
-{
-	N $profile;
-}
