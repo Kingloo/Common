@@ -1,10 +1,11 @@
 using System;
+using System.Globalization;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using static System.Runtime.InteropServices.RuntimeInformation;
 
-namespace .Common
+namespace 
 {
 	public static class RuntimeCircumstance
 	{
@@ -38,11 +39,11 @@ namespace .Common
 			}
 			else if (IsOSPlatform(OSPlatform.OSX))
 			{
-				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, macOSX));
+				throw new PlatformNotSupportedException(string.Format(CultureInfo.CurrentCulture, dontKnowMessage, macOSX));
 			}
 			else if (IsOSPlatform(OSPlatform.FreeBSD))
 			{
-				throw new PlatformNotSupportedException(string.Format(dontKnowMessage, freeBSD));
+				throw new PlatformNotSupportedException(string.Format(CultureInfo.CurrentCulture, dontKnowMessage, freeBSD));
 			}
 			else
 			{
