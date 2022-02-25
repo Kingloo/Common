@@ -2,29 +2,30 @@ using System;
 using System.Linq;
 using System.Runtime.Serialization;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Extensions.Hosting
+namespace 
 {
+	public class SystemHostServiceException : Exception
+	{
+		public SystemHostServiceException() { }
+
+		public SystemHostServiceException(string? message)
+			: base(message)
+		{ }
+
+		public SystemHostServiceException(string? message, Exception? innerException)
+			: base(message, innerException)
+		{ }
+
+		protected SystemHostServiceException(SerializationInfo info, StreamingContext context)
+			: base(info, context)
+		{ }
+	}
+
 	public static class SystemHostServiceExtensions
 	{
-		public class SystemHostServiceException : Exception
-		{
-			public SystemHostServiceException() { }
-
-			public SystemHostServiceException(string? message)
-				: base(message)
-			{ }
-
-			public SystemHostServiceException(string? message, Exception? innerException)
-				: base(message, innerException)
-			{ }
-
-			protected SystemHostServiceException(SerializationInfo info, StreamingContext context)
-				: base(info, context)
-			{ }
-		}
-
 		public static IHostBuilder ConfigureSystemHostService(this IHostBuilder hostBuilder, string[] args)
 		{
 			return ConfigureSystemHostService(hostBuilder, args, addSystemdConsoleLogger: true);
@@ -32,6 +33,11 @@ namespace Microsoft.Extensions.Hosting
 
 		public static IHostBuilder ConfigureSystemHostService(this IHostBuilder hostBuilder, string[] args, bool addSystemdConsoleLogger)
 		{
+			if (hostBuilder is null)
+			{
+				throw new ArgumentNullException(nameof(hostBuilder));
+			}
+
 			if (IsSystemd(args) && IsWindowsService(args))
 			{
 				throw new SystemHostServiceException("cannot specify both SystemD and Windows Service");
@@ -73,7 +79,7 @@ namespace Microsoft.Extensions.Hosting
 
 		private static bool ContainsArg(string[] args, string arg)
 		{
-			return args.Any(a => a.ToLower().Equals(arg, StringComparison.Ordinal));
+			return args.Any(a => a.Equals(arg, StringComparison.OrdinalIgnoreCase));
 		}
 	}
 }
