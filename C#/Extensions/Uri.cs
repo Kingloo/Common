@@ -4,18 +4,20 @@ namespace .Extensions
 {
 	public static class UriExtensions
 	{
+		private const char questionMark = '?';
+
 		public static string RemoveQuery(this Uri uri)
 		{
-			if (uri is null) { throw new ArgumentNullException(nameof(uri)); }
-
-			const string questionMark = "?";
-
-			if (!uri.AbsoluteUri.Contains(questionMark))
+			if (uri is null)
 			{
-				return uri.AbsoluteUri;
+				throw new ArgumentNullException(nameof(uri));
 			}
 
-			return uri.AbsoluteUri.Split(questionMark, StringSplitOptions.RemoveEmptyEntries)[0];
+			string absoluteUri = uri.AbsoluteUri;
+
+			return absoluteUri.Contains(questionMark)
+				? absoluteUri.Split(questionMark, StringSplitOptions.RemoveEmptyEntries)[0]
+				: absoluteUri;
 		}
 	}
 }
