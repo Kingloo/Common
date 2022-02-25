@@ -9,13 +9,26 @@ namespace .Extensions
 {
 	public static class StringExtensions
 	{
+		private const string https = "https://";
+		private const string http = "http://";
+
 		public static bool ContainsExt(this string target, string toFind, StringComparison comparison)
 		{
+			if (String.IsNullOrWhiteSpace(target))
+			{
+				throw new ArgumentNullException(nameof(target));
+			}
+
 			return (target.IndexOf(toFind, comparison) > -1);
 		}
 
 		public static string RemoveNewLines(this string value)
 		{
+			if (String.IsNullOrWhiteSpace(value))
+			{
+				throw new ArgumentNullException(nameof(value));
+			}
+
 			var sco = StringComparison.Ordinal;
 
 			string toReturn = value;
@@ -25,12 +38,12 @@ namespace .Extensions
 				toReturn = toReturn.Replace("\r\n", " ", sco);
 			}
 
-			if (toReturn.Contains("\r", sco))
+			if (toReturn.Contains('\r', sco))
 			{
 				toReturn = toReturn.Replace("\r", " ", sco);
 			}
 
-			if (toReturn.Contains("\n", sco))
+			if (toReturn.Contains('\n', sco))
 			{
 				toReturn = toReturn.Replace("\n", " ", sco);
 			}
@@ -45,6 +58,11 @@ namespace .Extensions
 
 		public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
 		{
+			if (String.IsNullOrWhiteSpace(self))
+			{
+				throw new ArgumentNullException(nameof(self));
+			}
+
 			var sb = new StringBuilder();
 
 			foreach (char c in self)
@@ -85,8 +103,10 @@ namespace .Extensions
 
 		public static string EnsureStartsWithHttps(this string input)
 		{
-			const string https = "https://";
-			const string http = "http://";
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				throw new ArgumentNullException(input);
+			}
 
 			if (input.StartsWith(https, StringComparison.OrdinalIgnoreCase))
 			{
