@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using System.IO;
 
@@ -19,6 +20,11 @@ namespace .Extensions
 
 		public static string LengthHumanReadable(this FileInfo file, CultureInfo ci)
 		{
+			if (file is null)
+			{
+				throw new ArgumentNullException(nameof(file));
+			}
+
 			decimal size = System.Convert.ToDecimal(file.Length);
 
 			return size switch
