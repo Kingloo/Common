@@ -3,15 +3,21 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace .Common
 {
+# pragma warning disable CA1000, CA1062
 	public abstract class ValueObject<TValue, TReference> : IEquatable<ValueObject<TValue, TReference>>, IComparable<ValueObject<TValue, TReference>>
 		where TValue : notnull
 		where TReference : notnull, ValueObject<TValue, TReference>, new()
 	{
-		[NotNull] protected TValue? _value = default(TValue);
+		[NotNull] private TValue? _value = default(TValue);
 		public TValue Value
 		{
 			get => _value;
 			protected set => _value = value;
+		}
+
+		public static TReference Empty
+		{
+			get => From(default(TValue)!, validate: false);
 		}
 
 		protected ValueObject(TValue value)
@@ -21,9 +27,17 @@ namespace .Common
 
 		public static TReference From(TValue value)
 		{
+			return From(value, validate: true);
+		}
+
+		private static TReference From(TValue value, bool validate)
+		{
 			var reference = new TReference();
 
-			reference.Validate(value);
+			if (validate)
+			{
+				reference.Validate(value);
+			}
 
 			reference.Value = value;
 
@@ -85,4 +99,5 @@ namespace .Common
 			return Value?.ToString() ?? "null";
 		}
 	}
+# pragma warning restore CA1000, CA1062
 }
