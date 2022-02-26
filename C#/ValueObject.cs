@@ -72,9 +72,20 @@ namespace .Common
 		{
 			return lhs.CompareTo(rhs) > 0;
 		}
+
+		public static bool operator >=(ValueObject<TValue, TReference> lhs, ValueObject<TValue, TReference> rhs)
+		{
+			return lhs.CompareTo(rhs) >= 0;
+		}
+
 		public static bool operator <(ValueObject<TValue, TReference> lhs, ValueObject<TValue, TReference> rhs)
 		{
 			return lhs.CompareTo(rhs) < 0;
+		}
+
+		public static bool operator <=(ValueObject<TValue, TReference> lhs, ValueObject<TValue, TReference> rhs)
+		{
+			return lhs.CompareTo(rhs) <= 0;
 		}
 
 		private static bool EqualsInternal(ValueObject<TValue, TReference> thisOne, ValueObject<TValue, TReference> otherOne)
