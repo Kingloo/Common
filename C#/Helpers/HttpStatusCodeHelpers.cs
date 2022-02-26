@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 
 namespace .Helpers
@@ -6,14 +7,12 @@ namespace .Helpers
 	{
 		public static string FormatStatusCode(HttpStatusCode? statusCode)
 		{
-			if (statusCode is not null)
+			if (statusCode is null)
 			{
-				return $"{statusCode} ({(int)statusCode})";
+				throw new ArgumentNullException(nameof(statusCode));
 			}
-			else
-			{
-				return "unknown";
-			}
+
+			return $"{statusCode} ({(int)statusCode})";
 		}
 	}
 }
