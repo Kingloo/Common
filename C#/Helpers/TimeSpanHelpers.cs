@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
-namespace .Helpers
+namespace .Common
 {
 	public static class TimeSpanHelpers
 	{
@@ -17,13 +18,7 @@ namespace .Helpers
 			return TimeSpan.FromSeconds(newTimeSecs);
 		}
 
-		public static string GetHumanReadable(int timestampSeconds)
-			=> GetHumanReadable(TimeSpan.FromSeconds(timestampSeconds));
-
-		public static string GetHumanReadableMs(int timestampMs)
-			=> GetHumanReadable(TimeSpan.FromMilliseconds(timestampMs));
-
-		public static string GetHumanReadable(TimeSpan timeSpan)
+		public static string GetHumanReadable(TimeSpan timeSpan, CultureInfo cultureInfo)
 		{
 			List<string> timeStrings = new List<string>();
 
