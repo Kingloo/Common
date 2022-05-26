@@ -51,8 +51,8 @@ namespace .Common
 			sb.AppendLine(base.ToString());
 			sb.AppendLine(uri.AbsoluteUri);
 			sb.AppendLine(Status.HasValue ? Status.Value.ToString() : "no status code");
-			sb.AppendLine($"reason: {Reason}");
-			sb.AppendLine($"string length: {Text.Length.ToString(CultureInfo.CurrentCulture)}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"reason: {Reason}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"string length: {Text.Length.ToString(CultureInfo.CurrentCulture)}");
 
 			return sb.ToString();
 		}
@@ -78,10 +78,10 @@ namespace .Common
 			StringBuilder sb = new StringBuilder();
 
 			sb.AppendLine(base.ToString());
-			sb.AppendLine($"uri: {uri.AbsoluteUri}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"uri: {uri.AbsoluteUri}");
 			sb.AppendLine(Status.HasValue ? Status.Value.ToString() : "no status code");
-			sb.AppendLine($"reason: {Reason}");
-			sb.AppendLine($"data length: {Data.Length.ToString(CultureInfo.CurrentCulture)}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"reason: {Reason}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"data length: {Data.Length.ToString(CultureInfo.CurrentCulture)}");
 
 			return sb.ToString();
 		}
@@ -108,10 +108,10 @@ namespace .Common
 			StringBuilder sb = new StringBuilder();
 
 			sb.AppendLine(base.ToString());
-			sb.AppendLine($"uri: {uri.AbsoluteUri}");
-			sb.AppendLine($"path: {path}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"uri: {uri.AbsoluteUri}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"path: {path}");
 			sb.AppendLine(Status.HasValue ? Status.Value.ToString() : "no status code");
-			sb.AppendLine($"reason: {Reason}");
+			sb.AppendLine(CultureInfo.CurrentCulture, $"reason: {Reason}");
 
 			return sb.ToString();
 		}
@@ -149,13 +149,18 @@ namespace .Common
 		[System.Diagnostics.DebuggerStepThrough]
 		public string? GetPercentFormatted() => GetPercentFormatted(CultureInfo.CurrentCulture);
 
-		public string? GetPercentFormatted(CultureInfo ci)
+		public string? GetPercentFormatted(CultureInfo cultureInfo)
 		{
+			if (cultureInfo is null)
+			{
+				throw new ArgumentNullException(nameof(cultureInfo));
+			}
+
 			if (GetDownloadRatio() is decimal ratio)
 			{
-				string percentFormat = GetPercentFormatString(ci);
+				string percentFormat = GetPercentFormatString(cultureInfo);
 
-				return ratio.ToString(percentFormat);
+				return ratio.ToString(percentFormat, cultureInfo);
 			}
 			else
 			{
@@ -189,7 +194,9 @@ namespace .Common
 			AllowAutoRedirect = true,
 			AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
 			MaxAutomaticRedirections = 3,
-			SslProtocols = SslProtocols.Tls12
+#pragma warning disable CA5398
+			SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
+#pragma warning restore CA5398
 		};
 
 		private static readonly HttpClient client = new HttpClient(handler)
@@ -334,10 +341,19 @@ namespace .Common
 		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress> progress)
 			=> DownloadFileAsync(uri, path, null, progress, CancellationToken.None);
 
-		public static async Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage>? configureRequest, IProgress<FileProgress>? progress, CancellationToken token)
+		public static async Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage>? configureRequest, IProgress<FileProgress>? progress, CancellationToken cancellationToken)
 		{
-			if (String.IsNullOrWhiteSpace(path)) { throw new ArgumentException("path cannot be NullOrWhiteSpace", nameof(path)); }
-			if (File.Exists(path)) { return new FileResponse(uri, path, Reason.FileExists); }
+			if (String.IsNullOrWhiteSpace(path))
+			{
+				throw new ArgumentException("path cannot be NullOrWhiteSpace", nameof(path));
+			}
+
+			if (File.Exists(path))
+			{
+				return new FileResponse(uri, path, Reason.FileExists);
+			}
+
+			FileSystem.EnsureDirectoryExists(new FileInfo(path).DirectoryName);
 
 			string inProgressPath = GetExtension(path, "inprogress");
 
@@ -366,17 +382,17 @@ namespace .Common
 
 			try
 			{
-				response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, token).ConfigureAwait(false);
+				response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
 				response.EnsureSuccessStatusCode();
 
 				Int64? contentLength = response.Content.Headers.ContentLength;
 
-				receive = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+				receive = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-				while ((bytesRead = await receive.ReadAsync(buffer, 0, buffer.Length, token).ConfigureAwait(false)) > 0)
+				while ((bytesRead = await receive.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
 				{
-					await save.WriteAsync(buffer, 0, bytesRead, token).ConfigureAwait(false);
+					await save.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
 
 					totalBytesWritten += bytesRead;
 
@@ -393,7 +409,7 @@ namespace .Common
 					}
 				}
 
-				await save.FlushAsync().ConfigureAwait(false);
+				await save.FlushAsync(CancellationToken.None).ConfigureAwait(false);
 
 				fileResponse = new FileResponse(uri, path, Reason.Success)
 				{
@@ -436,12 +452,16 @@ namespace .Common
 				request?.Dispose();
 				response?.Dispose();
 
-				receive?.Dispose();
-				save?.Dispose();
+				if (receive is not null)
+				{
+					await receive.DisposeAsync().ConfigureAwait(false);
+				}
+
+				await save.DisposeAsync().ConfigureAwait(false);
 			}
 
 			// probably unnecessary to wait beyond the finally, but eh, why not?
-			await Task.Delay(TimeSpan.FromMilliseconds(150d), token).ConfigureAwait(false);
+			await Task.Delay(TimeSpan.FromMilliseconds(150d), cancellationToken).ConfigureAwait(false);
 
 			string finalPath = fileResponse.Reason switch
 			{
@@ -458,8 +478,6 @@ namespace .Common
 
 		private static string GetExtension(string path, string extension)
 		{
-			Directory.CreateDirectory(new FileInfo(path).DirectoryName ?? string.Empty);
-
 			string newPath = $"{path}.{extension}";
 
 			if (!File.Exists(newPath))
