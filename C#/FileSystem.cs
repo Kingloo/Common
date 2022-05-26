@@ -33,7 +33,7 @@ namespace .Common
 		{
 			if (!File.Exists(path))
 			{
-				EnsureDirectoryExists(new FileInfo(path)?.DirectoryName ?? string.Empty);
+				EnsureDirectoryExists(new FileInfo(path).DirectoryName ?? string.Empty);
 
 				using (File.Create(path)) { }
 
@@ -94,10 +94,7 @@ namespace .Common
 			}
 			finally
 			{
-				if (fsAsync is not null)
-				{
-					await fsAsync.DisposeAsync().ConfigureAwait(false);
-				}
+				await fsAsync.DisposeAsync().ConfigureAwait(false);
 			}
 
 			return lines.ToArray();
@@ -109,6 +106,11 @@ namespace .Common
 
 		public static async ValueTask WriteLinesToFileAsync(string[] lines, string path, FileMode mode, Encoding encoding, CancellationToken token)
 		{
+			if (lines is null)
+			{
+				throw new ArgumentNullException(nameof(lines));
+			}
+
 			FileStream fsAsync = new FileStream(path, mode, FileAccess.Write, FileShare.None, 4096, FileOptions.Asynchronous | FileOptions.SequentialScan);
 
 			try
@@ -130,10 +132,7 @@ namespace .Common
 			}
 			finally
 			{
-				if (fsAsync is not null)
-				{
-					await fsAsync.DisposeAsync().ConfigureAwait(false);
-				}
+				await fsAsync.DisposeAsync().ConfigureAwait(false);
 			}
 		}
 	}
