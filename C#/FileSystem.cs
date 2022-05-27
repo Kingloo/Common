@@ -119,12 +119,7 @@ namespace .Common
 				{
 					foreach (string line in lines)
 					{
-						if (token.IsCancellationRequested)
-						{
-							break;
-						}
-
-						await sw.WriteLineAsync(line).ConfigureAwait(false);
+						await sw.WriteLineAsync(line.AsMemory(), token).ConfigureAwait(false);
 					}
 
 					await sw.FlushAsync().ConfigureAwait(false);
