@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -19,38 +19,38 @@ namespace .Extensions
 				throw new ArgumentNullException(nameof(target));
 			}
 
+			if (String.IsNullOrWhiteSpace(toFind))
+			{
+				throw new ArgumentNullException(nameof(toFind));
+			}
+
 			return (target.IndexOf(toFind, comparison) > -1);
 		}
 
 		public static string RemoveNewLines(this string value)
 		{
-			if (String.IsNullOrWhiteSpace(value))
-			{
-				throw new ArgumentNullException(nameof(value));
-			}
-
 			var sco = StringComparison.Ordinal;
 
 			string toReturn = value;
 
-			if (toReturn.Contains("\r\n", sco))
+			if (toReturn.ContainsExt("\r\n", sco))
 			{
-				toReturn = toReturn.Replace("\r\n", " ", sco);
+				toReturn = toReturn.Replace("\r\n", " ", StringComparison.OrdinalIgnoreCase);
 			}
 
-			if (toReturn.Contains('\r', sco))
+			if (toReturn.ContainsExt("\r", sco))
 			{
-				toReturn = toReturn.Replace("\r", " ", sco);
+				toReturn = toReturn.Replace("\r", " ", StringComparison.OrdinalIgnoreCase);
 			}
 
-			if (toReturn.Contains('\n', sco))
+			if (toReturn.ContainsExt("\n", sco))
 			{
-				toReturn = toReturn.Replace("\n", " ", sco);
+				toReturn = toReturn.Replace("\n", " ", StringComparison.OrdinalIgnoreCase);
 			}
 
-			if (toReturn.Contains(Environment.NewLine, sco))
+			if (toReturn.ContainsExt(Environment.NewLine, sco))
 			{
-				toReturn = toReturn.Replace(Environment.NewLine, " ", sco);
+				toReturn = toReturn.Replace(Environment.NewLine, " ", StringComparison.OrdinalIgnoreCase);
 			}
 
 			return toReturn;
@@ -78,8 +78,15 @@ namespace .Extensions
 
 		public static IReadOnlyCollection<string> FindBetween(this string text, string beginning, string ending)
 		{
-			if (String.IsNullOrEmpty(beginning)) { throw new ArgumentException("beginning was NullOrEmpty", nameof(beginning)); }
-			if (String.IsNullOrEmpty(ending)) { throw new ArgumentException("ending was NullOrEmpty", nameof(ending)); }
+			if (String.IsNullOrEmpty(beginning))
+			{
+				throw new ArgumentException("beginning was NullOrEmpty", nameof(beginning));
+			}
+
+			if (String.IsNullOrEmpty(ending))
+			{
+				throw new ArgumentException("ending was NullOrEmpty", nameof(ending));
+			}
 
 			List<string> results = new List<string>();
 
@@ -105,7 +112,7 @@ namespace .Extensions
 		{
 			if (String.IsNullOrWhiteSpace(input))
 			{
-				throw new ArgumentNullException(input);
+				throw new ArgumentNullException(nameof(input));
 			}
 
 			if (input.StartsWith(https, StringComparison.OrdinalIgnoreCase))
