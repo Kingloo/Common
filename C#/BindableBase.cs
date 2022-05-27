@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 
-namespace 
+namespace .Common
 {
 	public abstract class BindableBase : INotifyPropertyChanged
 	{
@@ -28,7 +28,9 @@ namespace
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]
+#pragma warning disable CA1030
 		protected virtual void RaisePropertyChanged(string propertyName)
 			=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+#pragma warning restore CA1030
 	}
 }
