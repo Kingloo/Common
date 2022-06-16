@@ -3,76 +3,80 @@ using System.Globalization;
 using System.Text;
 using System.Windows.Threading;
 
-namespace .Common
+namespace GBLive.Common
 {
-    public class DispatcherCountdownTimer
-    {
-        private readonly DateTime created = DateTime.Now;
-        private readonly Action tick;
-        private DispatcherTimer? timer = new DispatcherTimer(DispatcherPriority.Background);
+	public class DispatcherCountdownTimer
+	{
+		private readonly TimeSpan span;
+		private readonly Action tick;
 
-        public bool IsRunning
-        {
-            get
-            {
-                return timer != null && timer.IsEnabled;
-            }
-        }
+		private readonly DateTime created = DateTime.Now;
+		private DispatcherTimer? timer = null;
 
-        public TimeSpan TimeLeft
-        {
-            get
-            {
-                return (timer is null)
-                    ? TimeSpan.Zero
-                    : (created + timer.Interval) - DateTime.Now;
-            }
-        }
-        
-        public DispatcherCountdownTimer(TimeSpan span, Action tick)
-        {
-            if (span.Ticks < (TimeSpan.TicksPerMillisecond * 1000))
-            {
-                throw new ArgumentOutOfRangeException(nameof(span), "span.Ticks cannot be less than 1 second");
-            }
+		public bool IsRunning => timer?.IsEnabled ?? false;
 
-            this.tick = tick ?? throw new ArgumentNullException(nameof(tick));
+		public TimeSpan TimeLeft => IsRunning
+			? ((created + (timer?.Interval ?? TimeSpan.Zero)) - DateTime.Now)
+			: TimeSpan.Zero;
 
-            timer.Interval = span;
-            timer.Tick += Timer_Tick;
-        }
-        
-        private void Timer_Tick(object? sender, EventArgs e)
-        {
-            tick();
-            
-            Stop();
-        }
+		public DispatcherCountdownTimer(TimeSpan span, Action tick)
+		{
+			if (span.Ticks < (10_000 * 1000))
+			{
+				// there are 10_000 ticks in 1 millisecond
+				// therefore there are 10_000 * 1000 ticks in 1 second
+				// 10_000 * 1000 = 10_000_000
 
-        public void Start() => timer?.Start();
+				throw new ArgumentOutOfRangeException(nameof(span), "span.Ticks cannot be less than 1 second");
+			}
 
-        public void Stop()
-        {
-            if (!(timer is null))
-            {
-                timer.Stop();
-                timer.Tick -= Timer_Tick;
-                timer = null;
-            }
-        }
+			if (tick is null)
+			{
+				throw new ArgumentNullException(nameof(tick));
+			}
 
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
+			this.tick = tick;
+			this.span = span;
+		}
 
-            var cc = CultureInfo.CurrentCulture;
+		public void Start()
+		{
+			timer = new DispatcherTimer(DispatcherPriority.Background);
+			timer.Interval = span;
+			timer.Tick += Timer_Tick;
 
-            sb.AppendLine(GetType().FullName);
-            sb.AppendLine(string.Format(cc, "Created at: {0}", created.ToString(cc)));
-            sb.AppendLine(IsRunning ? "Is Running: true" : "Is Running: false");
-            sb.AppendLine(string.Format(cc, "Time left: {0}", TimeLeft.ToString()));
+			timer.Start();
+		}
 
-            return sb.ToString();
-        }
-    }
+		private void Timer_Tick(object? sender, EventArgs e)
+		{
+			tick();
+
+			Stop();
+		}
+
+		public void Stop()
+		{
+			if (timer is not null)
+			{
+				timer.Stop();
+				timer.Tick -= Timer_Tick;
+				timer = null;
+			}
+		}
+
+		public override string ToString()
+		{
+			var sb = new StringBuilder();
+
+			var cc = CultureInfo.CurrentCulture;
+
+			sb.AppendLine(GetType().FullName);
+			sb.AppendLine(string.Format(cc, "Created at: {0}", created.ToString(cc)));
+			sb.AppendLine(IsRunning ? "Is Running: true" : "Is Running: false");
+			sb.AppendLine(string.Format(cc, "Time left: {0}", TimeLeft.ToString()));
+
+			return sb.ToString();
+		}
+	}
 }
