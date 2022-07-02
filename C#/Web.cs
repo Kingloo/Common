@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,7 +43,13 @@ namespace .Common
 
 		public StringResponse(Uri uri, Reason reason)
 		{
-			this.uri = uri;
+			if (uri is null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+
+            this.uri = uri;
+            
 			Reason = reason;
 		}
 
@@ -146,17 +155,16 @@ namespace .Common
 			}
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public string? GetPercentFormatted() => GetPercentFormatted(CultureInfo.CurrentCulture);
 
 		public string? GetPercentFormatted(CultureInfo cultureInfo)
 		{
 			if (cultureInfo is null)
-			{
-				throw new ArgumentNullException(nameof(cultureInfo));
-			}
+            {
+                throw new ArgumentNullException(nameof(cultureInfo));
+            }
 
-			if (GetDownloadRatio() is decimal ratio)
+            if (GetDownloadRatio() is decimal ratio)
 			{
 				string percentFormat = GetPercentFormatString(cultureInfo);
 
@@ -178,33 +186,42 @@ namespace .Common
 			return Convert.ToDecimal(TotalBytesWritten) / Convert.ToDecimal(ContentLength.Value);
 		}
 
-		private static string GetPercentFormatString(CultureInfo ci)
+		private static string GetPercentFormatString(CultureInfo cultureInfo)
 		{
-			string separator = ci.NumberFormat.PercentDecimalSeparator;
-			string symbol = ci.NumberFormat.PercentSymbol;
+			string separator = cultureInfo.NumberFormat.PercentDecimalSeparator;
+			string symbol = cultureInfo.NumberFormat.PercentSymbol;
 
-			return string.Format(ci, "0{0}00 {1}", separator, symbol);
+			return string.Format(cultureInfo, "0{0}00 {1}", separator, symbol);
 		}
 	}
 
-	public static class Web
+#pragma warning disable CA1724
+    public static class Web
+#pragma warning restore CA1724
 	{
-		private static readonly HttpClientHandler handler = new HttpClientHandler
-		{
-			AllowAutoRedirect = true,
-			AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-			MaxAutomaticRedirections = 3,
+        private static readonly SocketsHttpHandler handler = new SocketsHttpHandler
+        {
+            AllowAutoRedirect = true,
+            AutomaticDecompression = DecompressionMethods.All,
+            ConnectTimeout = TimeSpan.FromSeconds(10),
+            MaxAutomaticRedirections = 5,
+            SslOptions = new SslClientAuthenticationOptions
+            {
+                AllowRenegotiation = false,
+                ApplicationProtocols = new List<SslApplicationProtocol> { SslApplicationProtocol.Http11, SslApplicationProtocol.Http2 },
+                CertificateRevocationCheckMode = X509RevocationMode.Online,
 #pragma warning disable CA5398
-			SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
+                EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
 #pragma warning restore CA5398
-		};
+                EncryptionPolicy = EncryptionPolicy.AllowNoEncryption
+            }
+        };
 
-		private static readonly HttpClient client = new HttpClient(handler)
+		private static readonly HttpClient client = new HttpClient(handler, disposeHandler: true)
 		{
 			Timeout = TimeSpan.FromSeconds(10d)
 		};
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public static Task<StringResponse> DownloadStringAsync(Uri uri)
 			=> DownloadStringAsync(uri, null);
 
@@ -263,7 +280,6 @@ namespace .Common
 			}
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public static Task<DataResponse> DownloadDataAsync(Uri uri)
 			=> DownloadDataAsync(uri, null);
 
@@ -329,31 +345,26 @@ namespace .Common
 			}
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path)
 			=> DownloadFileAsync(uri, path, null, null, CancellationToken.None);
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest)
 			=> DownloadFileAsync(uri, path, configureRequest, null, CancellationToken.None);
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress> progress)
+		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress>? progress)
 			=> DownloadFileAsync(uri, path, null, progress, CancellationToken.None);
 
 		public static async Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage>? configureRequest, IProgress<FileProgress>? progress, CancellationToken cancellationToken)
 		{
 			if (String.IsNullOrWhiteSpace(path))
-			{
-				throw new ArgumentException("path cannot be NullOrWhiteSpace", nameof(path));
-			}
-
-			if (File.Exists(path))
-			{
-				return new FileResponse(uri, path, Reason.FileExists);
-			}
-
-			FileSystem.EnsureDirectoryExists(new FileInfo(path).DirectoryName);
+            {
+                throw new ArgumentException("path was null-or-whiteSpace", nameof(path));
+            }
+			
+            if (File.Exists(path))
+            {
+                return new FileResponse(uri, path, Reason.FileExists);
+            }
 
 			string inProgressPath = GetExtension(path, "inprogress");
 
@@ -390,9 +401,11 @@ namespace .Common
 
 				receive = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
-				while ((bytesRead = await receive.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
+#pragma warning disable CA1835
+				while ((bytesRead = await receive.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0)
 				{
-					await save.WriteAsync(buffer, cancellationToken).ConfigureAwait(false);
+					await save.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+#pragma warning restore CA1835
 
 					totalBytesWritten += bytesRead;
 
@@ -452,16 +465,21 @@ namespace .Common
 				request?.Dispose();
 				response?.Dispose();
 
-				if (receive is not null)
-				{
-					await receive.DisposeAsync().ConfigureAwait(false);
-				}
+#pragma warning disable CA1508
+                if (receive is not null)
+                {
+                    await receive.DisposeAsync().ConfigureAwait(false);
+                }
 
-				await save.DisposeAsync().ConfigureAwait(false);
+                if (save is not null)
+                {
+                    await save.DisposeAsync().ConfigureAwait(false);
+                }
+#pragma warning restore CA1508
 			}
 
 			// probably unnecessary to wait beyond the finally, but eh, why not?
-			await Task.Delay(TimeSpan.FromMilliseconds(150d), cancellationToken).ConfigureAwait(false);
+			await Task.Delay(TimeSpan.FromMilliseconds(150d), CancellationToken.None).ConfigureAwait(false);
 
 			string finalPath = fileResponse.Reason switch
 			{
@@ -478,6 +496,8 @@ namespace .Common
 
 		private static string GetExtension(string path, string extension)
 		{
+			Directory.CreateDirectory(new FileInfo(path).DirectoryName ?? string.Empty);
+
 			string newPath = $"{path}.{extension}";
 
 			if (!File.Exists(newPath))
