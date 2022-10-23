@@ -7,63 +7,61 @@ using System.Text.RegularExpressions;
 
 namespace .Extensions
 {
-	internal static class StringExtensions
+	public static class StringExtensions
 	{
-		internal static bool ContainsExt(this string target, string toFind, StringComparison comparison)
+		private const string https = "https://";
+		private const string http = "http://";
+
+		public static bool ContainsExt(this string target, string toFind, StringComparison comparison)
 		{
-			if (target is null)
-            {
-                throw new ArgumentNullException(nameof(target));
-            }
+			if (String.IsNullOrWhiteSpace(target))
+			{
+				throw new ArgumentNullException(nameof(target));
+			}
+
+			if (String.IsNullOrWhiteSpace(toFind))
+			{
+				throw new ArgumentNullException(nameof(toFind));
+			}
 
 			return (target.IndexOf(toFind, comparison) > -1);
 		}
 
-		internal static string RemoveNewLines(this string value)
+		public static string RemoveNewLines(this string value)
 		{
-			if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
-
 			var sco = StringComparison.Ordinal;
 
 			string toReturn = value;
 
-			if (toReturn.Contains("\r\n", sco))
+			if (toReturn.ContainsExt("\r\n", sco))
 			{
-				toReturn = toReturn.Replace("\r\n", " ", sco);
+				toReturn = toReturn.Replace("\r\n", " ", StringComparison.OrdinalIgnoreCase);
 			}
 
-			if (toReturn.Contains('\r', sco))
+			if (toReturn.ContainsExt("\r", sco))
 			{
-				toReturn = toReturn.Replace("\r", " ", sco);
+				toReturn = toReturn.Replace("\r", " ", StringComparison.OrdinalIgnoreCase);
 			}
 
-			if (toReturn.Contains('\n', sco))
+			if (toReturn.ContainsExt("\n", sco))
 			{
-				toReturn = toReturn.Replace("\n", " ", sco);
+				toReturn = toReturn.Replace("\n", " ", StringComparison.OrdinalIgnoreCase);
 			}
 
-			if (toReturn.Contains(Environment.NewLine, sco))
+			if (toReturn.ContainsExt(Environment.NewLine, sco))
 			{
-				toReturn = toReturn.Replace(Environment.NewLine, " ", sco);
+				toReturn = toReturn.Replace(Environment.NewLine, " ", StringComparison.OrdinalIgnoreCase);
 			}
 
 			return toReturn;
 		}
 
-		internal static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
+		public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
 		{
-			if (self is null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
-			
-            if (categories is null)
-            {
-                throw new ArgumentNullException(nameof(categories));
-            }
+			if (String.IsNullOrWhiteSpace(self))
+			{
+				throw new ArgumentNullException(nameof(self));
+			}
 
 			var sb = new StringBuilder();
 
@@ -78,22 +76,17 @@ namespace .Extensions
 			return sb.ToString();
 		}
 
-		internal static IReadOnlyCollection<string> FindBetween(this string text, string beginning, string ending)
+		public static IReadOnlyCollection<string> FindBetween(this string text, string beginning, string ending)
 		{
-			if (text is null)
-            {
-                throw new ArgumentNullException(nameof(text));
-            }
-
 			if (String.IsNullOrEmpty(beginning))
-            {
-                throw new ArgumentException("beginning was NullOrEmpty", nameof(beginning));
-            }
-			
-            if (String.IsNullOrEmpty(ending))
-            {
-                throw new ArgumentException("ending was NullOrEmpty", nameof(ending));
-            }
+			{
+				throw new ArgumentException("beginning was NullOrEmpty", nameof(beginning));
+			}
+
+			if (String.IsNullOrEmpty(ending))
+			{
+				throw new ArgumentException("ending was NullOrEmpty", nameof(ending));
+			}
 
 			List<string> results = new List<string>();
 
@@ -104,23 +97,23 @@ namespace .Extensions
 				".+?",
 				Regex.Escape(ending));
 
-			foreach (Match m in Regex.Matches(text, pattern))
+			foreach (Match? m in Regex.Matches(text, pattern))
 			{
-				results.Add(m.Groups[1].Value);
+				if (m is not null)
+				{
+					results.Add(m.Groups[1].Value);
+				}
 			}
 
 			return results;
 		}
 
-		internal static string EnsureStartsWithHttps(this string input)
+		public static string EnsureStartsWithHttps(this string input)
 		{
-			if (input is null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
-
-			const string https = "https://";
-			const string http = "http://";
+			if (String.IsNullOrWhiteSpace(input))
+			{
+				throw new ArgumentNullException(nameof(input));
+			}
 
 			if (input.StartsWith(https, StringComparison.OrdinalIgnoreCase))
 			{
