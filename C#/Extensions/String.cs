@@ -11,6 +11,10 @@ namespace .Extensions
 	{
 		private const string https = "https://";
 		private const string http = "http://";
+		private const string carriageReturnNewLine = "\r\n";
+		private const string carriageReturn = "\r";
+		private const string newLine = "\n";
+		private const string space = " ";
 
 		public static bool ContainsExt(this string target, string toFind, StringComparison comparison)
 		{
@@ -19,41 +23,28 @@ namespace .Extensions
 				throw new ArgumentNullException(nameof(target));
 			}
 
-			if (String.IsNullOrWhiteSpace(toFind))
+			if (String.IsNullOrEmpty(toFind)) // don't change this to IsNullOrWhiteSpace, newlines count as whitespace
 			{
 				throw new ArgumentNullException(nameof(toFind));
 			}
 
-			return (target.IndexOf(toFind, comparison) > -1);
+			return target.IndexOf(toFind, comparison) > -1;
 		}
 
 		public static string RemoveNewLines(this string value)
 		{
-			var sco = StringComparison.Ordinal;
-
-			string toReturn = value;
-
-			if (toReturn.ContainsExt("\r\n", sco))
+			if (value is null)
 			{
-				toReturn = toReturn.Replace("\r\n", " ", StringComparison.OrdinalIgnoreCase);
+				throw new ArgumentNullException(nameof(value));
 			}
 
-			if (toReturn.ContainsExt("\r", sco))
-			{
-				toReturn = toReturn.Replace("\r", " ", StringComparison.OrdinalIgnoreCase);
-			}
-
-			if (toReturn.ContainsExt("\n", sco))
-			{
-				toReturn = toReturn.Replace("\n", " ", StringComparison.OrdinalIgnoreCase);
-			}
-
-			if (toReturn.ContainsExt(Environment.NewLine, sco))
-			{
-				toReturn = toReturn.Replace(Environment.NewLine, " ", StringComparison.OrdinalIgnoreCase);
-			}
-
-			return toReturn;
+			var scoic = StringComparison.OrdinalIgnoreCase;
+			
+			return value
+				.Replace(carriageReturnNewLine, space, scoic)
+				.Replace(carriageReturn, space, scoic)
+				.Replace(newLine, space, scoic)
+				.Replace(Environment.NewLine, space, scoic);
 		}
 
 		public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
@@ -125,7 +116,7 @@ namespace .Extensions
 				return input.Insert(4, "s");
 			}
 
-			return string.Format(CultureInfo.CurrentCulture, "{0}{1}", https, input);
+			return string.Format(CultureInfo.InvariantCulture, "{0}{1}", https, input);
 		}
 	}
 }
