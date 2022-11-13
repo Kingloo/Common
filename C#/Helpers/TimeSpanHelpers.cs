@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace .Common
 {
@@ -18,7 +17,7 @@ namespace .Common
 			return TimeSpan.FromSeconds(newTimeSecs);
 		}
 
-		public static string GetHumanReadable(TimeSpan timeSpan, CultureInfo cultureInfo)
+		public static string GetHumanReadable(TimeSpan timeSpan)
 		{
 			List<string> timeStrings = new List<string>();
 
