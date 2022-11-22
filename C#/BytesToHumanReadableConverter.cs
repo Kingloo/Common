@@ -12,6 +12,10 @@ namespace .Common
 		private const decimal oneEiB = oneKiB * onePiB;
 		private const decimal oneZiB = oneKiB * oneEiB;
 		private const decimal oneYiB = oneKiB * oneZiB;
+		private const decimal oneRiB = oneKiB * oneYiB;
+		
+		// private const decimal oneQiB = oneKiB * oneRiB;
+		// larger than decimal.MaxValue !!
 
 		internal static string Format(long bytes)
 			=> Format(bytes, CultureInfo.CurrentCulture);
@@ -30,7 +34,8 @@ namespace .Common
 				_ when bytes < oneEiB => FormatNumber(decimalBytes / onePiB, "PiB", 3, cultureInfo),
 				_ when bytes < oneZiB => FormatNumber(decimalBytes / oneEiB, "EiB", 3, cultureInfo),
 				_ when bytes < oneYiB => FormatNumber(decimalBytes / oneZiB, "ZiB", 3, cultureInfo),
-				_ => FormatNumber(decimalBytes / oneYiB, "YiB", 3, cultureInfo)
+				_ when bytes < oneRiB => FormatNumber(decimalBytes / oneYiB, "YiB", 3, cultureInfo),
+				_ => FormatNumber(decimalBytes / oneYiB, "RiB", 3, cultureInfo)
 			};
 		}
 
