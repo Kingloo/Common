@@ -35,7 +35,7 @@ namespace .Common
 				_ when bytes < oneZiB => FormatNumber(decimalBytes / oneEiB, "EiB", 3, cultureInfo),
 				_ when bytes < oneYiB => FormatNumber(decimalBytes / oneZiB, "ZiB", 3, cultureInfo),
 				_ when bytes < oneRiB => FormatNumber(decimalBytes / oneYiB, "YiB", 3, cultureInfo),
-				_ => FormatNumber(decimalBytes / oneYiB, "RiB", 3, cultureInfo)
+				_ => FormatNumber(decimalBytes / oneRiB, "RiB", 3, cultureInfo)
 			};
 		}
 
