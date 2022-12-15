@@ -42,11 +42,11 @@ namespace .Converters
             }
             else
             {
-                throw new NullReferenceException($"bool converter from {targetType.FullName} was passed a null value");
+				throw new ArgumentException($"bool converter from {targetType?.FullName ?? "null"} was passed a null value");
             }
         }
 
         public virtual object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => throw new NotImplementedException($"converting from {value.GetType().FullName} to {targetType} is not implemented!");
+            => throw new NotImplementedException($"converting from {value?.GetType().FullName ?? "null"} to {targetType} is not implemented!");
     }
 }

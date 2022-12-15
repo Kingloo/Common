@@ -47,7 +47,7 @@ namespace .Extensions
 				.Replace(Environment.NewLine, space, scoic);
 		}
 
-		public static string RemoveUnicodeCategories(this string self, IEnumerable<UnicodeCategory> categories)
+		public static string RemoveUnicodeCategories(this string self, IList<UnicodeCategory> categories)
 		{
 			if (String.IsNullOrWhiteSpace(self))
 			{
