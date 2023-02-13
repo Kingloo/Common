@@ -1,6 +1,6 @@
-﻿using System.Globalization;
+using System.Globalization;
 
-namespace .Common
+namespace Dgg.ChatLib.Common
 {
 	internal static class BytesToHumanReadableConverter
 	{
@@ -13,7 +13,7 @@ namespace .Common
 		private const decimal oneZiB = oneKiB * oneEiB;
 		private const decimal oneYiB = oneKiB * oneZiB;
 		private const decimal oneRiB = oneKiB * oneYiB;
-		
+
 		// private const decimal oneQiB = oneKiB * oneRiB;
 		// larger than decimal.MaxValue !!
 
@@ -35,7 +35,7 @@ namespace .Common
 				_ when bytes < oneZiB => FormatNumber(decimalBytes / oneEiB, "EiB", 3, cultureInfo),
 				_ when bytes < oneYiB => FormatNumber(decimalBytes / oneZiB, "ZiB", 3, cultureInfo),
 				_ when bytes < oneRiB => FormatNumber(decimalBytes / oneYiB, "YiB", 3, cultureInfo),
-				_ => FormatNumber(decimalBytes / oneRiB, "RiB", 3, cultureInfo)
+				_ => FormatNumber(decimalBytes / oneYiB, "RiB", 3, cultureInfo)
 			};
 		}
 

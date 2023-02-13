@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace .Extensions
+namespace Dgg.ChatLib.Extensions
 {
 	public static class StringExtensions
 	{
@@ -33,13 +33,10 @@ namespace .Extensions
 
 		public static string RemoveNewLines(this string value)
 		{
-			if (value is null)
-			{
-				throw new ArgumentNullException(nameof(value));
-			}
+			ArgumentNullException.ThrowIfNull(value, nameof(value));
 
 			var scoic = StringComparison.OrdinalIgnoreCase;
-			
+
 			return value
 				.Replace(carriageReturnNewLine, space, scoic)
 				.Replace(carriageReturn, space, scoic)

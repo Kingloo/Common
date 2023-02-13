@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace .Common
+namespace Dgg.ChatLib.Common
 {
 	public static class FileSystem
 	{
@@ -36,7 +36,7 @@ namespace .Common
 				throw new ArgumentNullException(nameof(path));
 			}
 
-            if (!File.Exists(path))
+			if (!File.Exists(path))
 			{
 				EnsureDirectoryExists(new FileInfo(path).DirectoryName);
 
@@ -108,12 +108,9 @@ namespace .Common
 		public static ValueTask WriteLinesToFileAsync(string[] lines, string path, FileMode mode, CancellationToken cancellationToken)
 			=> WriteLinesToFileAsync(lines, path, mode, Encoding.UTF8, cancellationToken);
 
-        public static async ValueTask WriteLinesToFileAsync(string[] lines, string path, FileMode mode, Encoding encoding, CancellationToken token)
+		public static async ValueTask WriteLinesToFileAsync(string[] lines, string path, FileMode mode, Encoding encoding, CancellationToken token)
 		{
-			if (lines is null)
-			{
-				throw new ArgumentNullException(nameof(lines));
-			}
+			ArgumentNullException.ThrowIfNull(lines, nameof(lines));
 
 			if (lines.Length == 0)
 			{
@@ -125,7 +122,7 @@ namespace .Common
 			try
 			{
 				using StreamWriter sw = new StreamWriter(fsAsync, encoding);
-                
+
 				foreach (string line in lines)
 				{
 					if (token.IsCancellationRequested)
