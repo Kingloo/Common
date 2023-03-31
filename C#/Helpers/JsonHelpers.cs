@@ -1,10 +1,10 @@
-﻿using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.CodeAnalysis;
 
 namespace .Helpers
 {
 	public static class JsonHelpers
 	{
-///*
+/*
 		public static bool TryParse(string text, [NotNullWhen(true)] out Newtonsoft.Json.Linq.JObject? json)
 		{
 			try
@@ -20,7 +20,7 @@ namespace .Helpers
 				return false;
 			}
 		}
-//*/
+*/
 
 		public static bool TryParse(string text, [NotNullWhen(true)] out System.Text.Json.Nodes.JsonNode? json)
 		{
