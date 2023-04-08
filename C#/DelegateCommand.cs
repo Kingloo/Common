@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -11,7 +11,6 @@ namespace .Common
 		public abstract void Execute(object? parameter);
 		public abstract bool CanExecute(object? parameter);
 
-		[System.Diagnostics.DebuggerStepThrough]
 #pragma warning disable CA1030
 		public void RaiseCanExecuteChanged()
 			=> CanExecuteChanged?.Invoke(this, new EventArgs());
@@ -23,22 +22,29 @@ namespace .Common
 		private readonly Action _execute;
 		private readonly Predicate<object?> _canExecute;
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public DelegateCommand(Action execute, Predicate<object?> canExecute)
+		public DelegateCommand(Action execute)
 		{
-			_execute = execute ?? throw new ArgumentNullException(nameof(execute));
-			_canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute));
+			ArgumentNullException.ThrowIfNull(execute);
+
+			_execute = execute;
+			_canExecute = (_) => true;
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public void Execute()
-			=> Execute(null);
+		public DelegateCommand(Action execute, Predicate<object?> canExecute)
+		{
+			ArgumentNullException.ThrowIfNull(execute);
+			ArgumentNullException.ThrowIfNull(canExecute);
 
-		[System.Diagnostics.DebuggerStepThrough]
+			_execute = execute;
+			_canExecute = canExecute;
+		}
+
+		public void Execute()
+			=> _execute();
+
 		public override void Execute(object? parameter)
 			=> _execute();
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public override bool CanExecute(object? parameter)
 			=> _canExecute(parameter);
 	}
@@ -48,20 +54,36 @@ namespace .Common
 		private readonly Action<T> _execute;
 		private readonly Predicate<T> _canExecute;
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
+		public DelegateCommand(Action<T> execute)
 		{
-			_execute = execute ?? throw new ArgumentNullException(nameof(execute));
-			_canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute));
+			ArgumentNullException.ThrowIfNull(execute);
+
+			_execute = execute;
+			_canExecute = (_) => true;
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public override void Execute(object? parameter)
-			=> _execute((T)parameter!);
+		public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
+		{
+			ArgumentNullException.ThrowIfNull(execute);
+			ArgumentNullException.ThrowIfNull(canExecute);
 
-		[System.Diagnostics.DebuggerStepThrough]
+			_execute = execute;
+			_canExecute = canExecute;
+		}
+
+		public override void Execute(object? parameter)
+		{
+			ArgumentNullException.ThrowIfNull(parameter);
+
+			_execute((T)parameter);
+		}
+
 		public override bool CanExecute(object? parameter)
-			=> _canExecute((T)parameter!);
+		{
+			ArgumentNullException.ThrowIfNull(parameter);
+
+			return _canExecute((T)parameter);
+		}
 	}
 
 	public class DelegateCommandAsync : Command
@@ -70,22 +92,29 @@ namespace .Common
 		private readonly Predicate<object?> _canExecute;
 		private bool _isExecuting = false;
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public DelegateCommandAsync(Func<Task> executeAsync, Predicate<object?> canExecute)
+		public DelegateCommandAsync(Func<Task> executeAsync)
 		{
-			_executeAsync = executeAsync ?? throw new ArgumentNullException(nameof(executeAsync));
-			_canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute));
+			ArgumentNullException.ThrowIfNull(executeAsync);
+
+			_executeAsync = executeAsync;
+			_canExecute = (_) => true;
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
+		public DelegateCommandAsync(Func<Task> executeAsync, Predicate<object?> canExecute)
+		{
+			ArgumentNullException.ThrowIfNull(executeAsync);
+			ArgumentNullException.ThrowIfNull(canExecute);
+
+			_executeAsync = executeAsync;
+			_canExecute = canExecute;
+		}
+
 		public async void Execute()
 			=> await ExecuteAsync().ConfigureAwait(true);
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public async override void Execute(object? parameter)
 			=> await ExecuteAsync().ConfigureAwait(true);
 
-		[System.Diagnostics.DebuggerStepThrough]
 		private async Task ExecuteAsync()
 		{
 			_isExecuting = true;
@@ -97,7 +126,6 @@ namespace .Common
 			RaiseCanExecuteChanged();
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public override bool CanExecute(object? parameter)
 			=> !_isExecuting && _canExecute(parameter);
 	}
@@ -108,18 +136,30 @@ namespace .Common
 		private readonly Predicate<T> _canExecute;
 		private bool _isExecuting = false;
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public DelegateCommandAsync(Func<T, Task> executeAsync, Predicate<T> canExecute)
+		public DelegateCommandAsync(Func<T, Task> executeAsync)
 		{
-			_executeAsync = executeAsync ?? throw new ArgumentNullException(nameof(executeAsync));
-			_canExecute = canExecute ?? throw new ArgumentNullException(nameof(canExecute));
+			ArgumentNullException.ThrowIfNull(executeAsync);
+
+			_executeAsync = executeAsync;
+			_canExecute = (_) => true;
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public override async void Execute(object? parameter)
-			=> await ExecuteAsync((T)parameter!).ConfigureAwait(true);
+		public DelegateCommandAsync(Func<T, Task> executeAsync, Predicate<T> canExecute)
+		{
+			ArgumentNullException.ThrowIfNull(executeAsync);
+			ArgumentNullException.ThrowIfNull(canExecute);
 
-		[System.Diagnostics.DebuggerStepThrough]
+			_executeAsync = executeAsync;
+			_canExecute = canExecute;
+		}
+
+		public override async void Execute(object? parameter)
+		{
+			ArgumentNullException.ThrowIfNull(parameter);
+
+			await ExecuteAsync((T)parameter).ConfigureAwait(true);
+		}
+
 		private async Task ExecuteAsync(T parameter)
 		{
 			_isExecuting = true;
@@ -131,8 +171,11 @@ namespace .Common
 			RaiseCanExecuteChanged();
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
 		public override bool CanExecute(object? parameter)
-			=> !_isExecuting && _canExecute((T)parameter!);
+		{
+			ArgumentNullException.ThrowIfNull(parameter);
+
+			return !_isExecuting && _canExecute((T)parameter);
+		}
 	}
 }
