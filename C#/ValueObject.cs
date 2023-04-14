@@ -3,12 +3,12 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace .Common
 {
-# pragma warning disable CA1000, CA1062
+#pragma warning disable CA1000, CA1062
 	public abstract class ValueObject<TValue, TReference> : IEquatable<ValueObject<TValue, TReference>>, IComparable<ValueObject<TValue, TReference>>
 		where TValue : notnull
 		where TReference : notnull, ValueObject<TValue, TReference>, new()
 	{
-		[NotNull] private TValue? _value = default(TValue);
+		[NotNull] private TValue? _value = default;
 		public TValue Value
 		{
 			get => _value;
@@ -17,7 +17,7 @@ namespace .Common
 
 		public static TReference Empty
 		{
-			get => From(default(TValue)!, validate: false);
+			get => From(default!, validate: false);
 		}
 
 		protected ValueObject(TValue value)
@@ -110,5 +110,5 @@ namespace .Common
 			return Value?.ToString() ?? "null";
 		}
 	}
-# pragma warning restore CA1000, CA1062
+#pragma warning restore CA1000, CA1062
 }
