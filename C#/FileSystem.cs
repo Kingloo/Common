@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Dgg.ChatLib.Common
+namespace .Common
 {
 	public static class FileSystem
 	{
