@@ -80,9 +80,7 @@ namespace .Common
 
 		public override bool CanExecute(object? parameter)
 		{
-			ArgumentNullException.ThrowIfNull(parameter);
-
-			return _canExecute((T)parameter);
+			return (parameter is not null) && _canExecute((T)parameter);
 		}
 	}
 
@@ -173,9 +171,7 @@ namespace .Common
 
 		public override bool CanExecute(object? parameter)
 		{
-			ArgumentNullException.ThrowIfNull(parameter);
-
-			return !_isExecuting && _canExecute((T)parameter);
+			return !_isExecuting && (parameter is not null) && _canExecute((T)parameter);
 		}
 	}
 }
