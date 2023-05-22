@@ -1,20 +1,25 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Dgg.ChatLib.Common
+namespace 
 {
 	public enum Reason
 	{
 		None,
 		Success,
 		WebError,
+		SocketError,
 		Timeout,
 		FileExists,
 		Canceled,
@@ -25,8 +30,9 @@ namespace Dgg.ChatLib.Common
 	public interface IResponse
 	{
 		Reason Reason { get; }
-		HttpStatusCode? Status { get; set; }
-		Exception? Exception { get; set; }
+		HttpStatusCode? StatusCode { get; init; }
+		SocketError SocketError { get; init; }
+		Exception? Exception { get; init; }
 	}
 
 	public class StringResponse : IResponse
@@ -34,12 +40,15 @@ namespace Dgg.ChatLib.Common
 		private readonly Uri uri;
 
 		public Reason Reason { get; } = Reason.None;
-		public HttpStatusCode? Status { get; set; } = null;
-		public Exception? Exception { get; set; } = null;
-		public string Text { get; set; } = string.Empty;
+		public HttpStatusCode? StatusCode { get; init; } = null;
+		public Exception? Exception { get; init; } = null;
+		public SocketError SocketError { get; init; } = SocketError.Success;
+		public string Text { get; init; } = string.Empty;
 
 		public StringResponse(Uri uri, Reason reason)
 		{
+			ArgumentNullException.ThrowIfNull(uri);
+
 			this.uri = uri;
 			Reason = reason;
 		}
@@ -50,7 +59,7 @@ namespace Dgg.ChatLib.Common
 
 			sb.AppendLine(base.ToString());
 			sb.AppendLine(uri.AbsoluteUri);
-			sb.AppendLine(Status.HasValue ? Status.Value.ToString() : "no status code");
+			sb.AppendLine(StatusCode.HasValue ? StatusCode.Value.ToString() : "no status code");
 			sb.AppendLine(CultureInfo.CurrentCulture, $"reason: {Reason}");
 			sb.AppendLine(CultureInfo.CurrentCulture, $"string length: {Text.Length.ToString(CultureInfo.CurrentCulture)}");
 
@@ -63,12 +72,15 @@ namespace Dgg.ChatLib.Common
 		private readonly Uri uri;
 
 		public Reason Reason { get; } = Reason.None;
-		public HttpStatusCode? Status { get; set; } = null;
-		public Exception? Exception { get; set; } = null;
-		public ReadOnlyMemory<byte> Data { get; set; } = new ReadOnlyMemory<byte>();
+		public HttpStatusCode? StatusCode { get; init; } = null;
+		public Exception? Exception { get; init; } = null;
+		public SocketError SocketError { get; init; } = SocketError.Success;
+		public ReadOnlyMemory<byte> Data { get; init; } = new ReadOnlyMemory<byte>();
 
 		public DataResponse(Uri uri, Reason reason)
 		{
+			ArgumentNullException.ThrowIfNull(uri);
+
 			this.uri = uri;
 			Reason = reason;
 		}
@@ -79,7 +91,7 @@ namespace Dgg.ChatLib.Common
 
 			sb.AppendLine(base.ToString());
 			sb.AppendLine(CultureInfo.CurrentCulture, $"uri: {uri.AbsoluteUri}");
-			sb.AppendLine(Status.HasValue ? Status.Value.ToString() : "no status code");
+			sb.AppendLine(StatusCode.HasValue ? StatusCode.Value.ToString() : "no status code");
 			sb.AppendLine(CultureInfo.CurrentCulture, $"reason: {Reason}");
 			sb.AppendLine(CultureInfo.CurrentCulture, $"data length: {Data.Length.ToString(CultureInfo.CurrentCulture)}");
 
@@ -93,11 +105,15 @@ namespace Dgg.ChatLib.Common
 		private readonly string path;
 
 		public Reason Reason { get; } = Reason.None;
-		public HttpStatusCode? Status { get; set; } = null;
-		public Exception? Exception { get; set; } = null;
+		public HttpStatusCode? StatusCode { get; init; } = null;
+		public Exception? Exception { get; init; } = null;
+		public SocketError SocketError { get; init; } = SocketError.Success;
 
 		public FileResponse(Uri uri, string path, Reason reason)
 		{
+			ArgumentNullException.ThrowIfNull(uri);
+			ArgumentNullException.ThrowIfNull(path);
+
 			this.uri = uri;
 			this.path = path;
 			Reason = reason;
@@ -110,7 +126,7 @@ namespace Dgg.ChatLib.Common
 			sb.AppendLine(base.ToString());
 			sb.AppendLine(CultureInfo.CurrentCulture, $"uri: {uri.AbsoluteUri}");
 			sb.AppendLine(CultureInfo.CurrentCulture, $"path: {path}");
-			sb.AppendLine(Status.HasValue ? Status.Value.ToString() : "no status code");
+			sb.AppendLine(StatusCode.HasValue ? StatusCode.Value.ToString() : "no status code");
 			sb.AppendLine(CultureInfo.CurrentCulture, $"reason: {Reason}");
 
 			return sb.ToString();
@@ -121,7 +137,7 @@ namespace Dgg.ChatLib.Common
 	{
 		public Int64 BytesWritten { get; } = 0L;
 		public Int64 TotalBytesWritten { get; } = 0L;
-		public Int64? ContentLength { get; } = -1L;
+		public Int64? ContentLength { get; } = null;
 
 		public FileProgress(Int64 bytesWritten, Int64 totalBytesWritten)
 			: this(bytesWritten, totalBytesWritten, null)
@@ -136,76 +152,98 @@ namespace Dgg.ChatLib.Common
 
 		public decimal? GetPercent()
 		{
-			if (GetDownloadRatio() is decimal ratio)
+			return GetDownloadRatio() switch
 			{
-				return ratio * 100m;
-			}
-			else
-			{
-				return null;
-			}
+				decimal ratio => ratio * 100m,
+				_ => null
+			};
 		}
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public string? GetPercentFormatted() => GetPercentFormatted(CultureInfo.CurrentCulture);
+		public string? GetPercentFormatted()
+			=> GetPercentFormatted(CultureInfo.CurrentCulture);
 
 		public string? GetPercentFormatted(CultureInfo cultureInfo)
 		{
-			ArgumentNullException.ThrowIfNull(cultureInfo, nameof(cultureInfo));
+			ArgumentNullException.ThrowIfNull(cultureInfo);
 
-			if (GetDownloadRatio() is decimal ratio)
+			return GetDownloadRatio() switch
 			{
-				string percentFormat = GetPercentFormatString(cultureInfo);
-
-				return ratio.ToString(percentFormat, cultureInfo);
-			}
-			else
-			{
-				return null;
-			}
+				decimal ratio => ratio.ToString(GetPercentFormatString(cultureInfo), cultureInfo),
+				_ => null
+			};
 		}
 
 		private decimal? GetDownloadRatio()
 		{
-			if (!ContentLength.HasValue)
+			return ContentLength.HasValue switch
 			{
-				return null;
-			}
-
-			return Convert.ToDecimal(TotalBytesWritten) / Convert.ToDecimal(ContentLength.Value);
+				true => Convert.ToDecimal(TotalBytesWritten) / Convert.ToDecimal(ContentLength.Value),
+				false => null
+			};
 		}
 
-		private static string GetPercentFormatString(CultureInfo ci)
+		private static string GetPercentFormatString(CultureInfo cultureInfo)
 		{
-			string separator = ci.NumberFormat.PercentDecimalSeparator;
-			string symbol = ci.NumberFormat.PercentSymbol;
+			string separator = cultureInfo.NumberFormat.PercentDecimalSeparator;
+			string symbol = cultureInfo.NumberFormat.PercentSymbol;
 
-			return string.Format(ci, "0{0}00 {1}", separator, symbol);
+			return string.Format(cultureInfo, "0{0}00 {1}", separator, symbol);
 		}
 	}
 
+#pragma warning disable CA1724
 	public static class Web
+#pragma warning restore CA1724
 	{
-		private static readonly HttpClientHandler handler = new HttpClientHandler
+		private static readonly SocketsHttpHandler handler = new SocketsHttpHandler
 		{
 			AllowAutoRedirect = true,
-			AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-			MaxAutomaticRedirections = 3,
+			AutomaticDecompression = DecompressionMethods.All,
+			ConnectTimeout = TimeSpan.FromSeconds(10d),
+			MaxAutomaticRedirections = 5,
+			SslOptions = new SslClientAuthenticationOptions
+			{
+				AllowRenegotiation = false,
+				ApplicationProtocols = new List<SslApplicationProtocol>
+				{
+					SslApplicationProtocol.Http11,
+					SslApplicationProtocol.Http2
+				},
+				CertificateRevocationCheckMode = X509RevocationMode.Online,
 #pragma warning disable CA5398
-			SslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13
+				EnabledSslProtocols = SslProtocols.Tls12 | SslProtocols.Tls13,
 #pragma warning restore CA5398
+				EncryptionPolicy = EncryptionPolicy.AllowNoEncryption
+			}
 		};
 
-		private static readonly HttpClient client = new HttpClient(handler)
+		private static readonly HttpClient client = new HttpClient(handler, disposeHandler: true)
 		{
 			Timeout = TimeSpan.FromSeconds(10d)
 		};
 
-		[System.Diagnostics.DebuggerStepThrough]
-		public static Task<StringResponse> DownloadStringAsync(Uri uri)
-			=> DownloadStringAsync(uri, null);
+		public static void DisposeHttpClient()
+		{
+			client.Dispose();
+		}
 
-		public static async Task<StringResponse> DownloadStringAsync(Uri uri, Action<HttpRequestMessage>? configureRequest)
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<StringResponse> DownloadStringAsync(Uri uri)
+			=> DownloadStringAsyncInternal(uri, null, CancellationToken.None);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<StringResponse> DownloadStringAsync(Uri uri, CancellationToken cancellationToken)
+			=> DownloadStringAsyncInternal(uri, null, cancellationToken);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<StringResponse> DownloadStringAsync(Uri uri, Action<HttpRequestMessage> configureRequest)
+			=> DownloadStringAsyncInternal(uri, configureRequest, CancellationToken.None);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<StringResponse> DownloadStringAsync(Uri uri, Action<HttpRequestMessage> configureRequest, CancellationToken cancellationToken)
+			=> DownloadStringAsyncInternal(uri, configureRequest, cancellationToken);
+
+		private static async ValueTask<StringResponse> DownloadStringAsyncInternal(Uri uri, Action<HttpRequestMessage>? configureRequest, CancellationToken cancellationToken)
 		{
 			HttpRequestMessage request = new HttpRequestMessage()
 			{
@@ -218,24 +256,32 @@ namespace Dgg.ChatLib.Common
 
 			try
 			{
-				response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+				response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
 				response.EnsureSuccessStatusCode();
 
-				string text = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+				string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 				return new StringResponse(uri, Reason.Success)
 				{
-					Status = response.StatusCode,
+					StatusCode = response.StatusCode,
 					Text = text
+				};
+			}
+			catch (HttpRequestException httpException) when (httpException.InnerException is SocketException socketException)
+			{
+				return new StringResponse(uri, Reason.SocketError)
+				{
+					StatusCode = response?.StatusCode ?? null,
+					Exception = httpException,
+					SocketError = socketException.SocketErrorCode
 				};
 			}
 			catch (HttpRequestException ex)
 			{
 				return new StringResponse(uri, Reason.WebError)
 				{
-					Status = response?.StatusCode ?? null,
-					Text = ex.Message,
+					StatusCode = response?.StatusCode ?? null,
 					Exception = ex
 				};
 			}
@@ -261,10 +307,22 @@ namespace Dgg.ChatLib.Common
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]
-		public static Task<DataResponse> DownloadDataAsync(Uri uri)
-			=> DownloadDataAsync(uri, null);
+		public static ValueTask<DataResponse> DownloadDataAsync(Uri uri)
+			=> DownloadDataAsyncInternal(uri, null, CancellationToken.None);
 
-		public static async Task<DataResponse> DownloadDataAsync(Uri uri, Action<HttpRequestMessage>? configureRequest)
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<DataResponse> DownloadDataAsync(Uri uri, CancellationToken cancellationToken)
+			=> DownloadDataAsyncInternal(uri, null, cancellationToken);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<DataResponse> DownloadDataAsync(Uri uri, Action<HttpRequestMessage> configureRequest)
+			=> DownloadDataAsyncInternal(uri, configureRequest, CancellationToken.None);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<DataResponse> DownloadDataAsync(Uri uri, Action<HttpRequestMessage> configureRequest, CancellationToken cancellationToken)
+			=> DownloadDataAsyncInternal(uri, configureRequest, cancellationToken);
+
+		private static async ValueTask<DataResponse> DownloadDataAsyncInternal(Uri uri, Action<HttpRequestMessage>? configureRequest, CancellationToken cancellationToken)
 		{
 			HttpRequestMessage request = new HttpRequestMessage()
 			{
@@ -277,23 +335,32 @@ namespace Dgg.ChatLib.Common
 
 			try
 			{
-				response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
+				response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
 
 				response.EnsureSuccessStatusCode();
 
-				ReadOnlyMemory<byte> data = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+				ReadOnlyMemory<byte> data = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
 				return new DataResponse(uri, Reason.Success)
 				{
-					Status = response.StatusCode,
+					StatusCode = response.StatusCode,
 					Data = data
+				};
+			}
+			catch (HttpRequestException httpException) when (httpException.InnerException is SocketException socketException)
+			{
+				return new DataResponse(uri, Reason.SocketError)
+				{
+					StatusCode = response?.StatusCode ?? null,
+					Exception = httpException,
+					SocketError = socketException.SocketErrorCode
 				};
 			}
 			catch (HttpRequestException ex)
 			{
 				return new DataResponse(uri, Reason.WebError)
 				{
-					Status = response?.StatusCode ?? null,
+					StatusCode = response?.StatusCode ?? null,
 					Exception = ex
 				};
 			}
@@ -301,7 +368,7 @@ namespace Dgg.ChatLib.Common
 			{
 				return new DataResponse(uri, Reason.CompressionError)
 				{
-					Status = response?.StatusCode ?? null,
+					StatusCode = response?.StatusCode ?? null,
 					Exception = ex
 				};
 			}
@@ -327,30 +394,51 @@ namespace Dgg.ChatLib.Common
 		}
 
 		[System.Diagnostics.DebuggerStepThrough]
-		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path)
-			=> DownloadFileAsync(uri, path, null, null, CancellationToken.None);
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path)
+			=> DownloadFileAsyncInternal(uri, path, null, null, CancellationToken.None);
 
 		[System.Diagnostics.DebuggerStepThrough]
-		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest)
-			=> DownloadFileAsync(uri, path, configureRequest, null, CancellationToken.None);
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, CancellationToken cancellationToken)
+			=> DownloadFileAsyncInternal(uri, path, null, null, cancellationToken);
 
 		[System.Diagnostics.DebuggerStepThrough]
-		public static Task<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress> progress)
-			=> DownloadFileAsync(uri, path, null, progress, CancellationToken.None);
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest)
+			=> DownloadFileAsyncInternal(uri, path, configureRequest, null, CancellationToken.None);
 
-		public static async Task<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage>? configureRequest, IProgress<FileProgress>? progress, CancellationToken cancellationToken)
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest, CancellationToken cancellationToken)
+			=> DownloadFileAsyncInternal(uri, path, configureRequest, null, cancellationToken);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress> progress)
+			=> DownloadFileAsyncInternal(uri, path, null, progress, CancellationToken.None);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, IProgress<FileProgress> progress, CancellationToken cancellationToken)
+			=> DownloadFileAsyncInternal(uri, path, null, progress, cancellationToken);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest, IProgress<FileProgress> progress)
+			=> DownloadFileAsyncInternal(uri, path, configureRequest, progress, CancellationToken.None);
+
+		[System.Diagnostics.DebuggerStepThrough]
+		public static ValueTask<FileResponse> DownloadFileAsync(Uri uri, string path, Action<HttpRequestMessage> configureRequest, IProgress<FileProgress> progress, CancellationToken cancellationToken)
+			=> DownloadFileAsyncInternal(uri, path, configureRequest, progress, cancellationToken);
+
+		private static async ValueTask<FileResponse> DownloadFileAsyncInternal(
+			Uri uri,
+			string path,
+			Action<HttpRequestMessage>? configureRequest,
+			IProgress<FileProgress>? progress,
+			CancellationToken cancellationToken)
 		{
-			if (String.IsNullOrWhiteSpace(path))
-			{
-				throw new ArgumentException("path cannot be NullOrWhiteSpace", nameof(path));
-			}
+			ArgumentNullException.ThrowIfNull(uri);
+			ArgumentNullException.ThrowIfNull(path);
 
 			if (File.Exists(path))
 			{
 				return new FileResponse(uri, path, Reason.FileExists);
 			}
-
-			FileSystem.EnsureDirectoryExists(new FileInfo(path).DirectoryName);
 
 			string inProgressPath = GetExtension(path, "inprogress");
 
@@ -395,7 +483,7 @@ namespace Dgg.ChatLib.Common
 
 					totalBytesWritten += bytesRead;
 
-					if (progress != null)
+					if (progress is not null)
 					{
 						if ((totalBytesWritten - prevTotalBytesWritten) > progressReportThreshold)
 						{
@@ -412,14 +500,23 @@ namespace Dgg.ChatLib.Common
 
 				fileResponse = new FileResponse(uri, path, Reason.Success)
 				{
-					Status = response.StatusCode
+					StatusCode = response.StatusCode
+				};
+			}
+			catch (HttpRequestException httpException) when (httpException.InnerException is SocketException socketException)
+			{
+				fileResponse = new FileResponse(uri, path, Reason.SocketError)
+				{
+					StatusCode = response?.StatusCode ?? null,
+					Exception = httpException,
+					SocketError = socketException.SocketErrorCode
 				};
 			}
 			catch (HttpRequestException ex)
 			{
 				fileResponse = new FileResponse(uri, path, Reason.WebError)
 				{
-					Status = response?.StatusCode ?? null,
+					StatusCode = response?.StatusCode ?? null,
 					Exception = ex
 				};
 			}
@@ -460,7 +557,7 @@ namespace Dgg.ChatLib.Common
 			}
 
 			// probably unnecessary to wait beyond the finally, but eh, why not?
-			await Task.Delay(TimeSpan.FromMilliseconds(150d), cancellationToken).ConfigureAwait(false);
+			await Task.Delay(TimeSpan.FromMilliseconds(100d), CancellationToken.None).ConfigureAwait(false);
 
 			string finalPath = fileResponse.Reason switch
 			{
@@ -477,6 +574,8 @@ namespace Dgg.ChatLib.Common
 
 		private static string GetExtension(string path, string extension)
 		{
+			Directory.CreateDirectory(new FileInfo(path).DirectoryName ?? string.Empty);
+
 			string newPath = $"{path}.{extension}";
 
 			if (!File.Exists(newPath))
