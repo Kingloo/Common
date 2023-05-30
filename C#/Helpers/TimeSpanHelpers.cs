@@ -19,7 +19,12 @@ namespace .Common
 
 		public static string GetHumanReadable(TimeSpan timeSpan)
 		{
-			List<string> timeStrings = new List<string>();
+			if (timeSpan == TimeSpan.Zero)
+			{
+				return "0 seconds";
+			}
+
+			IList<string> timeStrings = new List<string>();
 
 			int days = timeSpan.Days;
 			int hours = timeSpan.Hours;
