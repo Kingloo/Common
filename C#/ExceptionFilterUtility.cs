@@ -1,6 +1,6 @@
 using System;
 
-namespace Dgg.ChatLib.Common
+namespace .Common
 {
 	// https://blog.stephencleary.com/2020/06/a-new-pattern-for-exception-logging.html
 
