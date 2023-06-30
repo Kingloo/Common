@@ -50,5 +50,30 @@ namespace
 				throw new PlatformNotSupportedException(unknown);
 			}
 		}
+
+		public static string GetOSPlatform()
+		{
+			if (IsOSPlatform(OSPlatform.Windows))
+			{
+				return "Windows";
+			}
+
+			if (IsOSPlatform(OSPlatform.Linux))
+			{
+				return "Linux";
+			}
+
+			if (IsOSPlatform(OSPlatform.OSX))
+			{
+				return "OSX";
+			}
+
+			if (IsOSPlatform(OSPlatform.FreeBSD))
+			{
+				return "FreeBSD";
+			}
+
+			return "unknown";
+		}
 	}
 }
