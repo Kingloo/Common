@@ -5,7 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using static System.Runtime.InteropServices.RuntimeInformation;
 
-namespace 
+namespace .Common
 {
 	public static class RuntimeCircumstance
 	{
@@ -51,29 +51,39 @@ namespace
 			}
 		}
 
-		public static string GetOSPlatform()
+		public enum Platform
+		{
+			None,
+			Windows,
+			Linux,
+			OSX,
+			FreeBSD,
+			Unknown
+		}
+
+		public static Platform GetPlatform()
 		{
 			if (IsOSPlatform(OSPlatform.Windows))
 			{
-				return "Windows";
+				return Platform.Windows;
 			}
 
 			if (IsOSPlatform(OSPlatform.Linux))
 			{
-				return "Linux";
+				return Platform.Linux;
 			}
 
 			if (IsOSPlatform(OSPlatform.OSX))
 			{
-				return "OSX";
+				return Platform.OSX;
 			}
 
 			if (IsOSPlatform(OSPlatform.FreeBSD))
 			{
-				return "FreeBSD";
+				return Platform.FreeBSD;
 			}
 
-			return "unknown";
+			return Platform.Unknown;
 		}
 	}
 }
