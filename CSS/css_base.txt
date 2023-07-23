@@ -1,0 +1,37 @@
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+	margin: 0;
+}
+
+:root {
+	--clr-text: #ffffff;
+	/* other site-wide variables here */
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		--clr-text: #000000;
+	}
+}
+
+@media (prefers-color-scheme: light) {
+	:root {
+		--clr-text: #ffffff;
+	}
+}
+
+html {
+	color-scheme: light dark;
+}
+
+body {
+}
+
+img,
+svg,
+video {
+	max-width: 100%;
+	display: block;
+}
