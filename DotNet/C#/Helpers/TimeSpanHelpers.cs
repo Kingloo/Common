@@ -24,7 +24,7 @@ namespace .Common
 				return "0 seconds";
 			}
 
-			IList<string> timeStrings = new List<string>();
+			List<string> timeStrings = new List<string>();
 
 			int days = timeSpan.Days;
 			int hours = timeSpan.Hours;
