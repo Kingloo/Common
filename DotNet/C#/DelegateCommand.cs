@@ -13,7 +13,7 @@ namespace .Common
 
 #pragma warning disable CA1030
 		public void RaiseCanExecuteChanged()
-			=> CanExecuteChanged?.Invoke(this, new EventArgs());
+			=> CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 #pragma warning restore CA1030
 	}
 
