@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace .Common
+namespace StormDesktop.Common
 {
 	public abstract class Command : ICommand
 	{
@@ -13,7 +13,7 @@ namespace .Common
 
 #pragma warning disable CA1030
 		public void RaiseCanExecuteChanged()
-			=> CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+			=> CanExecuteChanged?.Invoke(this, new EventArgs());
 #pragma warning restore CA1030
 	}
 
@@ -49,10 +49,10 @@ namespace .Common
 			=> _canExecute(parameter);
 	}
 
-	public class DelegateCommand<T> : Command where T : class?
+	public class DelegateCommand<T> : Command
 	{
 		private readonly Action<T> _execute;
-		private readonly Predicate<T?> _canExecute;
+		private readonly Predicate<T> _canExecute;
 
 		public DelegateCommand(Action<T> execute)
 		{
@@ -62,7 +62,7 @@ namespace .Common
 			_canExecute = (_) => true;
 		}
 
-		public DelegateCommand(Action<T> execute, Predicate<T?> canExecute)
+		public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
 		{
 			ArgumentNullException.ThrowIfNull(execute);
 			ArgumentNullException.ThrowIfNull(canExecute);
@@ -80,11 +80,9 @@ namespace .Common
 
 		public override bool CanExecute(object? parameter)
 		{
-			return (parameter is null) switch
-			{
-				true => _canExecute(null),
-				false => _canExecute((T)parameter)
-			};
+			ArgumentNullException.ThrowIfNull(parameter);
+
+			return _canExecute((T)parameter);
 		}
 	}
 
@@ -114,7 +112,7 @@ namespace .Common
 		public async void Execute()
 			=> await ExecuteAsync().ConfigureAwait(true);
 
-		public async override void Execute(object? parameter)
+		public override async void Execute(object? parameter)
 			=> await ExecuteAsync().ConfigureAwait(true);
 
 		private async Task ExecuteAsync()
@@ -132,10 +130,10 @@ namespace .Common
 			=> !_isExecuting && _canExecute(parameter);
 	}
 
-	public class DelegateCommandAsync<T> : Command where T : class?
+	public class DelegateCommandAsync<T> : Command
 	{
 		private readonly Func<T, Task> _executeAsync;
-		private readonly Predicate<T?> _canExecute;
+		private readonly Predicate<T> _canExecute;
 		private bool _isExecuting = false;
 
 		public DelegateCommandAsync(Func<T, Task> executeAsync)
@@ -146,7 +144,7 @@ namespace .Common
 			_canExecute = (_) => true;
 		}
 
-		public DelegateCommandAsync(Func<T, Task> executeAsync, Predicate<T?> canExecute)
+		public DelegateCommandAsync(Func<T, Task> executeAsync, Predicate<T> canExecute)
 		{
 			ArgumentNullException.ThrowIfNull(executeAsync);
 			ArgumentNullException.ThrowIfNull(canExecute);
@@ -175,15 +173,9 @@ namespace .Common
 
 		public override bool CanExecute(object? parameter)
 		{
-			return _isExecuting switch
-			{
-				true => false,
-				false => (parameter is null) switch
-				{
-					true => _canExecute(null),
-					false => _canExecute((T)parameter)
-				}
-			};
+			ArgumentNullException.ThrowIfNull(parameter);
+
+			return !_isExecuting && _canExecute((T)parameter);
 		}
 	}
 }

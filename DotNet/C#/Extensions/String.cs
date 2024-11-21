@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace .Extensions
+namespace StormLib.Extensions
 {
 	public static class StringExtensions
 	{
@@ -35,7 +35,7 @@ namespace .Extensions
 		{
 			ArgumentNullException.ThrowIfNull(value, nameof(value));
 
-			var scoic = StringComparison.OrdinalIgnoreCase;
+			StringComparison scoic = StringComparison.OrdinalIgnoreCase;
 
 			return value
 				.Replace(carriageReturnNewLine, space, scoic)
@@ -51,7 +51,7 @@ namespace .Extensions
 				throw new ArgumentNullException(nameof(self));
 			}
 
-			var sb = new StringBuilder();
+			StringBuilder sb = new StringBuilder();
 
 			foreach (char c in self)
 			{
