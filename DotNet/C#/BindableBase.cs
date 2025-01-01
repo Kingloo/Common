@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel;
 
-namespace Dgg.ChatLib.Common
+namespace .Common
 {
 	public abstract class BindableBase : INotifyPropertyChanged
 	{
