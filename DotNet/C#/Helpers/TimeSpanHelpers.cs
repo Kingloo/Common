@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace .Helpers
+namespace 
 {
 	public static class TimeSpanHelpers
 	{
@@ -58,6 +58,8 @@ namespace .Helpers
 
 			if (timeUnit == TimeUnit.None)
 			{
+				// G is [-]d:hh:mm:ss.fffffff
+
 				return timeSpan.ToString("G", CultureInfo.CurrentCulture);
 			}
 
@@ -110,6 +112,13 @@ namespace .Helpers
 			if (ticks >= 1 && timeUnit.HasFlag(TimeUnit.Ticks))
 			{
 				timeStrings.Add($"{ticks}{GetPluralizedUnit(TimeUnit.Ticks, unitName, ticks)}");
+			}
+
+			if (timeStrings.Count == 0)
+			{
+				// G is [-]d:hh:mm:ss.fffffff
+				
+				return timeSpan.ToString("G", CultureInfo.CurrentCulture);
 			}
 
 			return String.Join(' ', timeStrings);
