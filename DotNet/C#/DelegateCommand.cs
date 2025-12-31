@@ -27,7 +27,7 @@ namespace StormDesktop.Common
 			ArgumentNullException.ThrowIfNull(execute);
 
 			_execute = execute;
-			_canExecute = (_) => true;
+			_canExecute = static (_) => true;
 		}
 
 		public DelegateCommand(Action execute, Predicate<object?> canExecute)
@@ -59,7 +59,7 @@ namespace StormDesktop.Common
 			ArgumentNullException.ThrowIfNull(execute);
 
 			_execute = execute;
-			_canExecute = (_) => true;
+			_canExecute = static (_) => true;
 		}
 
 		public DelegateCommand(Action<T> execute, Predicate<T> canExecute)
@@ -97,7 +97,7 @@ namespace StormDesktop.Common
 			ArgumentNullException.ThrowIfNull(executeAsync);
 
 			_executeAsync = executeAsync;
-			_canExecute = (_) => true;
+			_canExecute = static (_) => true;
 		}
 
 		public DelegateCommandAsync(Func<Task> executeAsync, Predicate<object?> canExecute)
@@ -141,7 +141,7 @@ namespace StormDesktop.Common
 			ArgumentNullException.ThrowIfNull(executeAsync);
 
 			_executeAsync = executeAsync;
-			_canExecute = (_) => true;
+			_canExecute = static (_) => true;
 		}
 
 		public DelegateCommandAsync(Func<T, Task> executeAsync, Predicate<T> canExecute)
