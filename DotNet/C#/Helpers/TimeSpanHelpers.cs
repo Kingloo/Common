@@ -41,15 +41,24 @@ namespace
 		}
 
 		public static string GetHumanReadable(TimeSpan timeSpan)
-			=> GetHumanReadableImpl(timeSpan, TimeUnit.Default, UnitName.Full);
+			=> GetHumanReadableImpl(timeSpan, TimeUnit.Default, UnitName.Full, CultureInfo.CurrentCulture);
+
+		public static string GetHumanReadable(TimeSpan timeSpan, CultureInfo cultureInfo)
+			=> GetHumanReadableImpl(timeSpan, TimeUnit.Default, UnitName.Full, cultureInfo);
 
 		public static string GetHumanReadable(TimeSpan timeSpan, TimeUnit timeUnit)
-			=> GetHumanReadableImpl(timeSpan, timeUnit, UnitName.Full);
+			=> GetHumanReadableImpl(timeSpan, timeUnit, UnitName.Full, CultureInfo.CurrentCulture);
+
+		public static string GetHumanReadable(TimeSpan timeSpan, TimeUnit timeUnit, CultureInfo cultureInfo)
+			=> GetHumanReadableImpl(timeSpan, timeUnit, UnitName.Full, cultureInfo);
 
 		public static string GetHumanReadable(TimeSpan timeSpan, TimeUnit timeUnit, UnitName unitName)
-			=> GetHumanReadableImpl(timeSpan, timeUnit, unitName);
+			=> GetHumanReadableImpl(timeSpan, timeUnit, unitName, CultureInfo.CurrentCulture);
 
-		private static string GetHumanReadableImpl(TimeSpan timeSpan, TimeUnit timeUnit, UnitName unitName)
+		public static string GetHumanReadable(TimeSpan timeSpan, TimeUnit timeUnit, UnitName unitName, CultureInfo cultureInfo)
+			=> GetHumanReadableImpl(timeSpan, timeUnit, unitName, cultureInfo);
+
+		private static string GetHumanReadableImpl(TimeSpan timeSpan, TimeUnit timeUnit, UnitName unitName, CultureInfo cultureInfo)
 		{
 			if (timeSpan == TimeSpan.Zero)
 			{
@@ -60,7 +69,7 @@ namespace
 			{
 				// G is [-]d:hh:mm:ss.fffffff
 
-				return timeSpan.ToString("G", CultureInfo.CurrentCulture);
+				return timeSpan.ToString("G", cultureInfo);
 			}
 
 			List<string> timeStrings = new List<string>(capacity: 5);
@@ -76,49 +85,81 @@ namespace
 
 			if (days >= 1 && timeUnit.HasFlag(TimeUnit.Days))
 			{
-				timeStrings.Add($"{days}{GetPluralizedUnit(TimeUnit.Days, unitName, days)}");
+				string pluralizedDays = GetPluralizedUnit(TimeUnit.Days, unitName, days);
+
+				string daysMessage = string.Format(cultureInfo, "{0}{1}", days, pluralizedDays);
+
+				timeStrings.Add(daysMessage);
 			}
 
 			if (hours >= 1 && timeUnit.HasFlag(TimeUnit.Hours))
 			{
-				timeStrings.Add($"{hours}{GetPluralizedUnit(TimeUnit.Hours, unitName, hours)}");
+				string pluralizedHours = GetPluralizedUnit(TimeUnit.Hours, unitName, hours);
+
+				string hoursMessage = string.Format(cultureInfo, "{0}{1}", hours, pluralizedHours);
+
+				timeStrings.Add(hoursMessage);
 			}
 
 			if (minutes >= 1 && timeUnit.HasFlag(TimeUnit.Minutes))
 			{
-				timeStrings.Add($"{minutes}{GetPluralizedUnit(TimeUnit.Minutes, unitName, minutes)}");
+				string pluralizedMinutes = GetPluralizedUnit(TimeUnit.Minutes, unitName, minutes);
+
+				string minutesMessage = string.Format(cultureInfo, "{0}{1}", minutes, pluralizedMinutes);
+
+				timeStrings.Add(minutesMessage);
 			}
 
 			if (seconds >= 1 && timeUnit.HasFlag(TimeUnit.Seconds))
 			{
-				timeStrings.Add($"{seconds}{GetPluralizedUnit(TimeUnit.Seconds, unitName, seconds)}");
+				string pluralizedSeconds = GetPluralizedUnit(TimeUnit.Seconds, unitName, seconds);
+
+				string secondsMessage = string.Format(cultureInfo, "{0}{1}", seconds, pluralizedSeconds);
+
+				timeStrings.Add(secondsMessage);
 			}
 
 			if (milliseconds >= 1 && timeUnit.HasFlag(TimeUnit.Milliseconds))
 			{
-				timeStrings.Add($"{milliseconds}{GetPluralizedUnit(TimeUnit.Milliseconds, unitName, milliseconds)}");
+				string pluralizedMilliseconds = GetPluralizedUnit(TimeUnit.Milliseconds, unitName, milliseconds);
+
+				string millisecondsMessage = string.Format(cultureInfo, "{0}{1}", milliseconds, pluralizedMilliseconds);
+
+				timeStrings.Add(millisecondsMessage);
 			}
 
 			if (microseconds >= 1 && timeUnit.HasFlag(TimeUnit.Microseconds))
 			{
-				timeStrings.Add($"{microseconds}{GetPluralizedUnit(TimeUnit.Microseconds, unitName, microseconds)}");
+				string pluralizedMicroseconds = GetPluralizedUnit(TimeUnit.Microseconds, unitName, microseconds);
+
+				string microsecondsMessage = string.Format(cultureInfo, "{0}{1}", microseconds, pluralizedMicroseconds);
+
+				timeStrings.Add(microsecondsMessage);
 			}
 
 			if (nanoseconds >= 1 && timeUnit.HasFlag(TimeUnit.Nanoseconds))
 			{
-				timeStrings.Add($"{nanoseconds}{GetPluralizedUnit(TimeUnit.Nanoseconds, unitName, nanoseconds)}");
+				string pluralizedNanoseconds = GetPluralizedUnit(TimeUnit.Nanoseconds, unitName, nanoseconds);
+
+				string nanosecondsMessage = string.Format(cultureInfo, "{0}{1}", nanoseconds, pluralizedNanoseconds);
+
+				timeStrings.Add(nanosecondsMessage);
 			}
 
 			if (ticks >= 1 && timeUnit.HasFlag(TimeUnit.Ticks))
 			{
-				timeStrings.Add($"{ticks}{GetPluralizedUnit(TimeUnit.Ticks, unitName, ticks)}");
+				string pluralizedTicks = GetPluralizedUnit(TimeUnit.Ticks, unitName, ticks);
+
+				string ticksMessage = string.Format(cultureInfo, "{0}{1}", ticks, pluralizedTicks);
+
+				timeStrings.Add(ticksMessage);
 			}
 
 			if (timeStrings.Count == 0)
 			{
 				// G is [-]d:hh:mm:ss.fffffff
-				
-				return timeSpan.ToString("G", CultureInfo.CurrentCulture);
+
+				return timeSpan.ToString("G", cultureInfo);
 			}
 
 			return String.Join(' ', timeStrings);
